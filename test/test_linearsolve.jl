@@ -7,6 +7,7 @@ using LinearAlgebra
 using LinearSolve
 using ForwardDiff
 using MultiFloats
+import Pardiso
 
 f64(x::ForwardDiff.Dual{T}) where {T} = Float64(ForwardDiff.value(x))
 f64(x::Number) = Float64(x)
@@ -17,19 +18,9 @@ function test_ls1(T, k, l, m; linsolver = SparspakFactorization())
     b = A*ones(k * l * m)
     x0 = A \ b
     p = LinearProblem(T.(A), T.(b))
-    x1 = solve(p, linsolver)
+    x1 = solve(p, linsolver, abstol=1.0e-12)
+    @show norm(x0-x1)
     x0 ≈ x1
-end
-
-@test test_ls1(Float64, 10, 10, 10, linsolver = KLUFactorization())
-@test test_ls1(Float64, 25, 40, 1, linsolver = KLUFactorization())
-@test test_ls1(Float64, 100, 1, 1, linsolver = KLUFactorization())
-
-for T in [Float32, Float64, Float64x1, Float64x2, Dual64]
-    println("$T:")
-    @test test_ls1(T, 10, 10, 10, linsolver = SparspakFactorization())
-    @test test_ls1(T, 25, 40, 1, linsolver = SparspakFactorization())
-    @test test_ls1(T, 100, 1, 1, linsolver = SparspakFactorization())
 end
 
 function test_ls2(T, k, l, m; linsolver = SparspakFactorization())
@@ -38,38 +29,59 @@ function test_ls2(T, k, l, m; linsolver = SparspakFactorization())
     p = LinearProblem(A, b)
     x0 = solve(p, linsolver)
     cache = x0.cache
-    x0 = A \ b
-    for i = 4:(k * l * m - 3)
-        A[i, i + 3] -= 1.0e-4
-        A[i - 3, i] -= 1.0e-4
+    x0=copy(x0)
+    nonzeros(A).-=1.0e-4
+    for i = 1:k*l*m
+        A[i, i] += 1.0e-4
     end
 
-    LinearSolve.set_A(cache, A)
-    x1 = solve(p, linsolver)
-    x1 = A \ b
+    reinit!(cache; A, reuse_precs=true)
+    x1 = solve!(cache, linsolver)
     all(x0 .< x1)
 end
 
-@test test_ls1(Float64, 10, 10, 10, linsolver = KLUFactorization())
-@test test_ls1(Float64, 25, 40, 1, linsolver = KLUFactorization())
-@test test_ls1(Float64, 100, 1, 1, linsolver = KLUFactorization())
+
 
 for T in [Float32, Float64, Float64x1, Float64x2, Dual64]
     println("$T:")
     @test test_ls1(T, 10, 10, 10, linsolver = SparspakFactorization())
     @test test_ls1(T, 25, 40, 1, linsolver = SparspakFactorization())
     @test test_ls1(T, 100, 1, 1, linsolver = SparspakFactorization())
-end
 
-@test test_ls2(Float64, 10, 10, 10, linsolver = KLUFactorization())
-@test test_ls2(Float64, 25, 40, 1, linsolver = KLUFactorization())
-@test test_ls2(Float64, 100, 1, 1, linsolver = KLUFactorization())
-
-for T in [Float32, Float64, Float64x1, Float64x2, Dual64]
-    println("$T:")
     @test test_ls2(T, 10, 10, 10, linsolver = SparspakFactorization())
     @test test_ls2(T, 25, 40, 1, linsolver = SparspakFactorization())
     @test test_ls2(T, 100, 1, 1, linsolver = SparspakFactorization())
+
 end
+
+
+for factorization in [UMFPACKFactorization(),
+                      KLUFactorization(reuse_symbolic=false),
+                      MKLPardisoFactorize()]
+    println("$factorization:")
+    @test test_ls1(Float64, 10, 10, 10, linsolver = factorization)
+    @test test_ls1(Float64, 25, 40, 1, linsolver = factorization)
+    @test test_ls1(Float64, 100, 1, 1, linsolver = factorization)
+
+    @test test_ls2(Float64, 10, 10, 10, linsolver = factorization)
+    @test test_ls2(Float64, 25, 40, 1, linsolver = factorization)
+    @test test_ls2(Float64, 100, 1, 1, linsolver = factorization)
+end
+
+
+
+for iteration in [KrylovJL_GMRES(precs= (A,p) -> (JacobiPreconditioner(A),I))]
+    println("$iteration:")
+    @test test_ls1(Float64, 10, 10, 10, linsolver = iteration)
+    @test test_ls1(Float64, 25, 40, 1, linsolver = iteration)
+    @test test_ls1(Float64, 100, 1, 1, linsolver = iteration)
+
+    @test test_ls2(Float64, 10, 10, 10, linsolver = iteration)
+    @test test_ls2(Float64, 25, 40, 1, linsolver = iteration)
+    @test test_ls2(Float64, 100, 1, 1, linsolver = iteration)
+end
+
+
+
 
 end
