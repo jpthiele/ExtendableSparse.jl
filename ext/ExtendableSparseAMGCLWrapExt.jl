@@ -10,6 +10,8 @@ mutable struct AMGCL_AMGPreconditioner <: AbstractPreconditioner
     factorization::AMGCLWrap.AMGPrecon
     kwargs
     function ExtendableSparse.AMGCL_AMGPreconditioner(; kwargs...)
+        Base.depwarn("AMGCL_AMGPreconditioner() is deprecated. Use LinearSolve with `precs=AMGCLWrap.AMGPreconBuilder()`  instead.",
+                     :AMGCL_AMGPreconditioner)
         precon = new()
         precon.kwargs = kwargs
         precon
@@ -35,6 +37,8 @@ mutable struct AMGCL_RLXPreconditioner <: AbstractPreconditioner
     factorization::AMGCLWrap.RLXPrecon
     kwargs
     function ExtendableSparse.AMGCL_RLXPreconditioner(; kwargs...)
+        Base.depwarn("AMGCL_RLXPreconditioner() is deprecated. Use LinearSolve with  `precs=AMGCLWrap.RLXPreconBuilder()`  instead.",
+                     :AMGCL_RLXPreconditioner)
         precon = new()
         precon.kwargs = kwargs
         precon

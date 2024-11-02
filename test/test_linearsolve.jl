@@ -7,6 +7,8 @@ using LinearAlgebra
 using LinearSolve
 using ForwardDiff
 using MultiFloats
+
+using AMGCLWrap
 import Pardiso
 
 f64(x::ForwardDiff.Dual{T}) where {T} = Float64(ForwardDiff.value(x))
@@ -19,7 +21,6 @@ function test_ls1(T, k, l, m; linsolver = SparspakFactorization())
     x0 = A \ b
     p = LinearProblem(T.(A), T.(b))
     x1 = solve(p, linsolver, abstol=1.0e-12)
-    @show norm(x0-x1)
     x0 ≈ x1
 end
 
@@ -70,7 +71,11 @@ end
 
 
 
-for iteration in [KrylovJL_GMRES(precs= (A,p) -> (JacobiPreconditioner(A),I))]
+for iteration in [
+    KrylovJL_GMRES(precs=AMGCLWrap.AMGPreconBuilder()),
+    KrylovJL_GMRES(precs=AMGCLWrap.RLXPreconBuilder())
+
+                  ]
     println("$iteration:")
     @test test_ls1(Float64, 10, 10, 10, linsolver = iteration)
     @test test_ls1(Float64, 25, 40, 1, linsolver = iteration)
@@ -82,6 +87,39 @@ for iteration in [KrylovJL_GMRES(precs= (A,p) -> (JacobiPreconditioner(A),I))]
 end
 
 
+
+function mainprecs(;n=100)
+    A=fdrand(n,n)
+    partitioning=A->[1:2:size(A,1), 2:2:size(A,1)]
+    sol0=ones(n^2)
+    b=A*ones(n^2);
+
+    precs=EquationBlockPrecs(;precs=UMFPACKPrecs(), partitioning)
+    @info precs
+    p=LinearProblem(A,b)
+    sol=solve(p, KrylovJL_CG(;precs))
+    @test sol≈sol0
+
+    precs=EquationBlockPrecs(;precs=SparspakPrecs(), partitioning)
+    @info precs
+    p=LinearProblem(A,b)
+    sol=solve(p, KrylovJL_CG(;precs))
+    @test sol≈sol0
+
+    precs=EquationBlockPrecs(;precs=AMGCLWrap.AMGPreconBuilder(), partitioning)
+    @info precs
+    p=LinearProblem(A,b)
+    sol=solve(p, KrylovJL_CG(;precs))
+    @test sol≈sol0
+
+    precs=EquationBlockPrecs(;precs=AMGCLWrap.RLXPreconBuilder(), partitioning)
+    @info precs
+    p=LinearProblem(A,b)
+    sol=solve(p, KrylovJL_CG(;precs))
+    @test sol≈sol0
+
+end
+mainprecs()
 
 
 end

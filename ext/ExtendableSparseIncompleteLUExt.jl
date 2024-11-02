@@ -1,8 +1,13 @@
 module ExtendableSparseIncompleteLUExt
 using ExtendableSparse
 using IncompleteLU 
+using LinearAlgebra: I
+using SparseArrays: AbstractSparseMatrixCSC, SparseMatrixCSC, getcolptr, rowvals, nonzeros
+
 
 import ExtendableSparse: @makefrommatrix, AbstractPreconditioner, update!
+
+import ExtendableSparse: IncompleteLUPrecs
 
 mutable struct ILUTPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
@@ -25,5 +30,6 @@ function update!(precon::ILUTPreconditioner)
     @inbounds flush!(A)
     precon.factorization = IncompleteLU.ilu(A.cscmatrix; τ = precon.droptol)
 end
+
 end
 
