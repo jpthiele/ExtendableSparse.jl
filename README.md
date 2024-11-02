@@ -1,6 +1,6 @@
 # ExtendableSparse.jl
 
-[![Build status](https://github.com/WIAS-PDELib/ExtendableSparse.jl/workflows/linux-macos-windows/badge.svg)](https://github.com/WIAS-PDELib/ExtendableSparse.jl/actions)
+[![Build status](https://github.com/WIAS-PDELib/ExtendableSparse.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/WIAS-PDELib/ExtendableSparse.jl/actions/workflows/ci.yml?query=branch%3Amaster)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://WIAS-PDELib.github.io/ExtendableSparse.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://WIAS-PDELib.github.io/ExtendableSparse.jl/dev)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3530554.svg)](https://doi.org/10.5281/zenodo.3530554)
