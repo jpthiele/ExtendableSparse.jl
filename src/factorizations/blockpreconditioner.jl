@@ -101,14 +101,19 @@ Base.eltype(p::BlockPreconditioner)=eltype(p.facts[1])
 
 
 
-Base.@kwdef struct EquationBlockPrecs
+Base.@kwdef struct EquationBlockPreconBuilder
     precs=UMFPACKPrecs()
     partitioning= [A -> 1:size(A,1)]
 end
 
-function (blockprecs::EquationBlockPrecs)(A,p)
+function (blockprecs::EquationBlockPreconBuilder)(A,p)
     (;precs, partitioning)=blockprecs
     factorization= A->precs(A,p)[1]
     bp=BlockPreconditioner(A;partitioning=partitioning(A), factorization)
     (bp,I)
 end
+
+"""
+    Allow array for precs => different precoms
+EquationBlockPreconBuilder
+"""

@@ -9,6 +9,7 @@ using ForwardDiff
 using MultiFloats
 
 using AMGCLWrap
+using ILUZero, IncompleteLU, AlgebraicMultigrid
 import Pardiso
 
 f64(x::ForwardDiff.Dual{T}) where {T} = Float64(ForwardDiff.value(x))
@@ -42,84 +43,71 @@ function test_ls2(T, k, l, m; linsolver = SparspakFactorization())
 end
 
 
-
-for T in [Float32, Float64, Float64x1, Float64x2, Dual64]
-    println("$T:")
-    @test test_ls1(T, 10, 10, 10, linsolver = SparspakFactorization())
-    @test test_ls1(T, 25, 40, 1, linsolver = SparspakFactorization())
-    @test test_ls1(T, 100, 1, 1, linsolver = SparspakFactorization())
-
-    @test test_ls2(T, 10, 10, 10, linsolver = SparspakFactorization())
-    @test test_ls2(T, 25, 40, 1, linsolver = SparspakFactorization())
-    @test test_ls2(T, 100, 1, 1, linsolver = SparspakFactorization())
+@testset "Sparspak" begin
+    for T in [Float32, Float64, Float64x1, Float64x2, Dual64]
+        @test test_ls1(T, 10, 10, 10, linsolver = SparspakFactorization())
+        @test test_ls1(T, 25, 40, 1, linsolver = SparspakFactorization())
+        @test test_ls1(T, 100, 1, 1, linsolver = SparspakFactorization())
+        
+        @test test_ls2(T, 10, 10, 10, linsolver = SparspakFactorization())
+        @test test_ls2(T, 25, 40, 1, linsolver = SparspakFactorization())
+        @test test_ls2(T, 100, 1, 1, linsolver = SparspakFactorization())
+    end
 
 end
+@testset "Factorizations" begin
+    
+    for factorization in [UMFPACKFactorization(),
+                          KLUFactorization(reuse_symbolic=false),
+                          MKLPardisoFactorize()]
 
-
-for factorization in [UMFPACKFactorization(),
-                      KLUFactorization(reuse_symbolic=false),
-                      MKLPardisoFactorize()]
-    println("$factorization:")
-    @test test_ls1(Float64, 10, 10, 10, linsolver = factorization)
-    @test test_ls1(Float64, 25, 40, 1, linsolver = factorization)
-    @test test_ls1(Float64, 100, 1, 1, linsolver = factorization)
-
-    @test test_ls2(Float64, 10, 10, 10, linsolver = factorization)
-    @test test_ls2(Float64, 25, 40, 1, linsolver = factorization)
-    @test test_ls2(Float64, 100, 1, 1, linsolver = factorization)
+        @test test_ls1(Float64, 10, 10, 10, linsolver = factorization)
+        @test test_ls1(Float64, 25, 40, 1, linsolver = factorization)
+        @test test_ls1(Float64, 100, 1, 1, linsolver = factorization)
+        
+        @test test_ls2(Float64, 10, 10, 10, linsolver = factorization)
+        @test test_ls2(Float64, 25, 40, 1, linsolver = factorization)
+        @test test_ls2(Float64, 100, 1, 1, linsolver = factorization)
+    end
 end
 
+allprecs=[
+    AMGCLWrap.AMGPreconBuilder(),
+    AMGCLWrap.AMGPreconBuilder(),                   
+    AMGCLWrap.RLXPreconBuilder(),                   
+    ExtendableSparse.ILUZeroBuilder(),              
+    ExtendableSparse.ILUTBuilder(),              
+    ExtendableSparse.SmoothedAggregationAMGBuilder(),
+    ExtendableSparse.RugeStubenAMGBuilder()
+]         
 
-
-for iteration in [
-    KrylovJL_GMRES(precs=AMGCLWrap.AMGPreconBuilder()),
-    KrylovJL_GMRES(precs=AMGCLWrap.RLXPreconBuilder())
-
-                  ]
-    println("$iteration:")
-    @test test_ls1(Float64, 10, 10, 10, linsolver = iteration)
-    @test test_ls1(Float64, 25, 40, 1, linsolver = iteration)
-    @test test_ls1(Float64, 100, 1, 1, linsolver = iteration)
-
-    @test test_ls2(Float64, 10, 10, 10, linsolver = iteration)
-    @test test_ls2(Float64, 25, 40, 1, linsolver = iteration)
-    @test test_ls2(Float64, 100, 1, 1, linsolver = iteration)
+@testset "iterations" begin
+    for precs in allprecs
+        iteration=KrylovJL_GMRES(precs;)
+        
+        @test test_ls1(Float64, 10, 10, 10, linsolver = iteration)
+        @test test_ls1(Float64, 25, 40, 1, linsolver = iteration)
+        @test test_ls1(Float64, 100, 1, 1, linsolver = iteration)
+        
+        @test test_ls2(Float64, 10, 10, 10, linsolver = iteration)
+        @test test_ls2(Float64, 25, 40, 1, linsolver = iteration)
+        @test test_ls2(Float64, 100, 1, 1, linsolver = iteration)
+    end
 end
 
-
-
-function mainprecs(;n=100)
+@testset "equationblock" begin
+    n=100
     A=fdrand(n,n)
     partitioning=A->[1:2:size(A,1), 2:2:size(A,1)]
     sol0=ones(n^2)
     b=A*ones(n^2);
-
-    precs=EquationBlockPrecs(;precs=UMFPACKPrecs(), partitioning)
-    @info precs
-    p=LinearProblem(A,b)
-    sol=solve(p, KrylovJL_CG(;precs))
-    @test sol≈sol0
-
-    precs=EquationBlockPrecs(;precs=SparspakPrecs(), partitioning)
-    @info precs
-    p=LinearProblem(A,b)
-    sol=solve(p, KrylovJL_CG(;precs))
-    @test sol≈sol0
-
-    precs=EquationBlockPrecs(;precs=AMGCLWrap.AMGPreconBuilder(), partitioning)
-    @info precs
-    p=LinearProblem(A,b)
-    sol=solve(p, KrylovJL_CG(;precs))
-    @test sol≈sol0
-
-    precs=EquationBlockPrecs(;precs=AMGCLWrap.RLXPreconBuilder(), partitioning)
-    @info precs
-    p=LinearProblem(A,b)
-    sol=solve(p, KrylovJL_CG(;precs))
-    @test sol≈sol0
-
+    
+    for precs in allprecs
+        iteration=KrylovJL_CG(precs=EquationBlockPreconBuilder(;precs, partitioning))
+        p=LinearProblem(A,b)
+        sol=solve(p, KrylovJL_CG(;precs))
+        @test sol≈sol0
+    end
 end
-mainprecs()
-
 
 end

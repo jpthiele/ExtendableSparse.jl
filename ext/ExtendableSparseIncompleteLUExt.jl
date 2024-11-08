@@ -4,11 +4,15 @@ using IncompleteLU
 using LinearAlgebra: I
 using SparseArrays: AbstractSparseMatrixCSC, SparseMatrixCSC, getcolptr, rowvals, nonzeros
 
+import ExtendableSparse: ILUTBuilder
+
+(b::ILUTBuilder)(A::AbstractSparseMatrixCSC,p)=(IncompleteLU.ilu(SparseMatrixCSC(A); τ = b.droptol),I)
+
 
 import ExtendableSparse: @makefrommatrix, AbstractPreconditioner, update!
 
-import ExtendableSparse: IncompleteLUPrecs
 
+# Deprecated from here
 mutable struct ILUTPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::IncompleteLU.ILUFactorization

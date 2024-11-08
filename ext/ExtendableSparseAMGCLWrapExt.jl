@@ -1,3 +1,5 @@
+# The whole extension is deprecated
+# TODO remove in v2.0
 module ExtendableSparseAMGCLWrapExt
 using ExtendableSparse
 using AMGCLWrap
