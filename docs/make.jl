@@ -8,7 +8,7 @@ function mkdocs()
              warnonly = true,
              clean = false,
              authors = "J. Fuhrmann",
-             repo = "https://github.com/j-fu/ExtendableSparse.jl",
+             repo = "https://github.com/WIAS-PDELib/ExtendableSparse.jl",
              pages = [
                  "Home" => "index.md",
                  "example.md",
@@ -22,4 +22,4 @@ end
 
 mkdocs()
 
-deploydocs(; repo = "github.com/j-fu/ExtendableSparse.jl.git")
+deploydocs(; repo = "github.com/WIAS-PDELib/ExtendableSparse.jl.git")
