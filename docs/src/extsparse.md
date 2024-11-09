@@ -2,6 +2,10 @@
 
 ## Matrix creation and update API
 
+```@docs
+ExtendableSparseMatrix
+```
+
 ```@autodocs
 Modules = [ExtendableSparse]
 Pages = ["extendable.jl"]

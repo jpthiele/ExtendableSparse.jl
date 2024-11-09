@@ -32,10 +32,33 @@ include("matrix/extendable.jl")
 include("matrix/genericmtextendablesparsematrixcsc.jl")
 include("matrix/genericextendablesparsematrixcsc.jl")
 
+"""
+    ExtendableSparseMatrix
+
+Aliased to [`ExtendableSparseMatrixCSC`](@ref)
+"""
 const ExtendableSparseMatrix=ExtendableSparseMatrixCSC
+
+
+"""
+    MTExtendableSparseMatrixCSC
+
+Multithreaded extendable sparse matrix  (Experimental).
+
+Aliased to [`GenericMTExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
+scalar matrix parameter.
+"""
 const MTExtendableSparseMatrixCSC{Tv,Ti}=GenericMTExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
 MTExtendableSparseMatrixCSC(m,n,args...)=MTExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
 
+"""
+    STExtendableSparseMatrixCSC
+
+Single threaded extendable sparse matrix (Experimental).
+
+Aliased to [`GenericExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
+scalar matrix parameter.
+"""
 const STExtendableSparseMatrixCSC{Tv,Ti}=GenericExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
 STExtendableSparseMatrixCSC(m,n,args...)=STExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
 

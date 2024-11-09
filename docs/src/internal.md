@@ -15,7 +15,7 @@ Pages = ["sparsematrixcsc.jl"]
 ```
 ## New API 
 Under development - aimed at multithreading
-```@autodocs
+```@autodocs; canonical = false
 Modules = [ExtendableSparse]
 Pages = ["abstractsparsematrixextension.jl",
     "abstractextendablesparsematrixcsc.jl",
