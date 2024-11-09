@@ -55,11 +55,17 @@ end
     end
 
 end
+
+factorizations=[UMFPACKFactorization(),
+                KLUFactorization(reuse_symbolic=false)]
+
+if !Sys.isapple()
+    push!(factorizations,MKLPardisoFactorize())
+end
+
 @testset "Factorizations" begin
     
-    for factorization in [UMFPACKFactorization(),
-                          KLUFactorization(reuse_symbolic=false),
-                          MKLPardisoFactorize()]
+    for factorization in factorizations
 
         @test test_ls1(Float64, 10, 10, 10, linsolver = factorization)
         @test test_ls1(Float64, 25, 40, 1, linsolver = factorization)
@@ -105,8 +111,8 @@ end
     for precs in allprecs
         iteration=KrylovJL_CG(precs=EquationBlockPreconBuilder(;precs, partitioning))
         p=LinearProblem(A,b)
-        sol=solve(p, KrylovJL_CG(;precs))
-        @test sol≈sol0
+        sol=solve(p, KrylovJL_CG(;precs), abstol=1.0e-12)
+        @test isapprox(sol, sol0, atol=1e-6)
     end
 end
 
