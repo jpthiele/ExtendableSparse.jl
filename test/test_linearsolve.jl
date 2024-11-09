@@ -84,6 +84,7 @@ allprecs=[
     ExtendableSparse.ILUZeroPreconBuilder(),              
     ExtendableSparse.ILUZeroPreconBuilder(;blocksize=2),              
     ExtendableSparse.ILUTPreconBuilder(),              
+    ExtendableSparse.JacobiPreconBuilder(),              
     ExtendableSparse.SmoothedAggregationPreconBuilder(),
     ExtendableSparse.RugeStubenPreconBuilder()
 ]         
@@ -102,6 +103,11 @@ allprecs=[
     end
 end
 
+
+moreprecs=[ExtendableSparse.UMFPACKPreconBuilder(),
+           ExtendableSparse.SparspakPreconBuilder(),
+           ExtendableSparse.CholeskyPreconBuilder()]
+
 @testset "equationblock" begin
     n=100
     A=fdrand(n,n)
@@ -109,7 +115,7 @@ end
     sol0=ones(n^2)
     b=A*ones(n^2);
     
-    for precs in allprecs
+    for precs in vcat(allprecs, moreprecs)
         iteration=KrylovJL_CG(precs=BlockPreconBuilder(;precs, partitioning))
         p=LinearProblem(A,b)
         sol=solve(p, KrylovJL_CG(;precs), abstol=1.0e-12)

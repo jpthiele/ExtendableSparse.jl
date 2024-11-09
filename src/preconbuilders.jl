@@ -10,6 +10,22 @@ struct UMFPACKPreconBuilder end
 end
 
 """
+    CholeskyPreconBuilder()
+
+Return callable object constructing a formal left preconditioner from a Cholesky factorization using CHOLMOD to be passed
+as the `precs` parameter to iterative methods wrapped by LinearSolve.jl.
+"""
+struct CholeskyPreconBuilder end
+@static if USE_GPL_LIBS
+(::CholeskyPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(cholesky(Symmetric(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A)))),LinearAlgebra.I)
+
+# Harrr!!! ☠
+LinearAlgebra.ldiv!(fact::SparseArrays.CHOLMOD.Factor, v) = fact \ v
+
+end
+
+
+"""
     SparspakPreconBuilder()
 
 Return callable object constructing a formal left preconditioner from an LU factorization using Sparspak to be passed
