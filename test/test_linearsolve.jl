@@ -82,6 +82,7 @@ allprecs=[
     AMGCLWrap.AMGPreconBuilder(),                   
     AMGCLWrap.RLXPreconBuilder(),                   
     ExtendableSparse.ILUZeroPreconBuilder(),              
+    ExtendableSparse.ILUZeroPreconBuilder(;blocksize=2),              
     ExtendableSparse.ILUTPreconBuilder(),              
     ExtendableSparse.SmoothedAggregationPreconBuilder(),
     ExtendableSparse.RugeStubenPreconBuilder()

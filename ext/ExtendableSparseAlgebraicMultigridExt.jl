@@ -19,12 +19,19 @@ import ExtendableSparse: RugeStubenPreconBuilder
 import ExtendableSparse: @makefrommatrix, AbstractPreconditioner, update!
 
 ######################################################################################
+rswarned=false
+
 mutable struct RS_AMGPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::AlgebraicMultigrid.Preconditioner
     kwargs
     blocksize
     function ExtendableSparse.RS_AMGPreconditioner(blocksize=1; kwargs...)
+        global rswarned
+        if !rswarned
+            @warn "RS_AMGPreconditioner is deprecated. Use LinearSolve with `precs=RugeStubenPreconBuilder()` instead"
+            rswarned=true
+        end
         precon = new()
         precon.kwargs = kwargs
         precon.blocksize=blocksize
@@ -45,13 +52,20 @@ end
 allow_views(::RS_AMGPreconditioner)=true
 allow_views(::Type{RS_AMGPreconditioner})=true
 
+
 ######################################################################################
+sawarned=false
 mutable struct SA_AMGPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::AlgebraicMultigrid.Preconditioner
     kwargs
     blocksize
     function ExtendableSparse.SA_AMGPreconditioner(blocksize=1; kwargs...)
+        global sawarned
+        if !sawarned
+            @warn "SA_AMGPreconditioner is deprecated. Use LinearSolve with `precs=SmoothedAggregationPreconBuilder()` instead"
+            sawarned=true
+        end
         precon = new()
         precon.kwargs = kwargs
         precon.blocksize=blocksize

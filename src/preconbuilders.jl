@@ -48,6 +48,7 @@ function (b::ILUZeroPreconBuilder)(A0,p)
 end
 
 # Harrr!!! ☠
+# We could resolve this piracy by introducing a wrapper type for the block case.
 function LinearAlgebra.ldiv!(Y::Vector{Tv},
                              A::ILUZero.ILU0Precon{SMatrix{N, N, Tv, NN}, Ti, SVector{N, Tv}},
                              B::Vector{Tv}) where {N,NN,Tv,Ti}
