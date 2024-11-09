@@ -5,7 +5,7 @@
 ### Breaking
 - remove solver + precon API which is not based on precs or directly overloading `\`.
   Fully rely on LinearSolve (besides `\`)
-- Move AMGBuilder, ILUZeroBuilder to the correspondig packages (depending on the PRs)
+- Move AMGBuilder, ILUZeroBuilder etc. to the correspondig packages (depending on the PRs)
 - remove "old" SparseMatrixLNK (need to benchmark before)
 
 ## [1.6.0] - WIP
