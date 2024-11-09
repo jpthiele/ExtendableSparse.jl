@@ -29,13 +29,33 @@ struct JacobiPreconBuilder end
 
 
 """
-    ILUZeroPreconBuilder()
+    ILUZeroPreconBuilder(;blocksize=1)
 
 Return callable object constructing a left zero fill-in ILU preconditioner 
 using [ILUZero.jl](https://github.com/mcovalt/ILUZero.jl)
 """
-struct ILUZeroPreconBuilder end
-(::ILUZeroPreconBuilder)(A,p)=(ilu0(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A))),LinearAlgebra.I)
+Base.@kwdef struct ILUZeroPreconBuilder
+    blocksize::Int = 1
+end
+
+function (b::ILUZeroPreconBuilder)(A0,p)
+    A=SparseMatrixCSC(size(A0)..., getcolptr(A0), rowvals(A0),nonzeros(A0))
+    if b.blocksize==1
+        (ILUZero.ilu0(A),LinearAlgebra.I)
+    else
+        (ILUZero.ilu0(pointblock(A,b.blocksize),SVector{b.blocksize,eltype(A)}),LinearAlgebra.I)
+    end
+end
+
+# Harrr!!! ☠
+function LinearAlgebra.ldiv!(Y::Vector{Tv},
+                             A::ILUZero.ILU0Precon{SMatrix{N, N, Tv, NN}, Ti, SVector{N, Tv}},
+                             B::Vector{Tv}) where {N,NN,Tv,Ti}
+    BY=reinterpret(SVector{N,Tv},Y)
+    BB=reinterpret(SVector{N,Tv},B)
+    ldiv!(BY,A,BB)
+    Y
+end
 
 """
     ILUTPreconBuilder(; droptol=0.1)
