@@ -121,7 +121,7 @@ function (blockprecs::BlockPreconBuilder)(A,p)
     (;precs, partitioning)=blockprecs
     factorization= A->precs(A,p)[1]
     bp=BlockPreconditioner(A;partitioning=partitioning(A), factorization)
-    (bp,I)
+    (bp,LinearAlgebra.I)
 end
 
 """
