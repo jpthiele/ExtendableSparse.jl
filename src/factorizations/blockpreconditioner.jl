@@ -100,13 +100,24 @@ end
 Base.eltype(p::BlockPreconditioner)=eltype(p.facts[1])
 
 
+"""
+     BlockPreconBuilder(;precs=UMFPACKPreconBuilder(),  
+                         partitioning = A -> [1:size(A,1)]
 
-Base.@kwdef struct EquationBlockPreconBuilder
-    precs=UMFPACKPrecs()
-    partitioning= [A -> 1:size(A,1)]
+Return callable object constructing a left block Jacobi preconditioner 
+from partition of unknowns.
+
+- `partitioning(A)`  shall return a vector of AbstractVectors describing the indices of the partitions of the matrix. 
+  For a matrix of size `n x n`, e.g. partitioning could be `[ 1:n÷2, (n÷2+1):n]` or [ 1:2:n, 2:2:n].
+
+- `precs(A,p)` shall return a left precondioner for a matrix block.
+"""
+Base.@kwdef struct BlockPreconBuilder
+    precs=UMFPACKPreconBuilder()
+    partitioning= A -> [1:size(A,1)]
 end
 
-function (blockprecs::EquationBlockPreconBuilder)(A,p)
+function (blockprecs::BlockPreconBuilder)(A,p)
     (;precs, partitioning)=blockprecs
     factorization= A->precs(A,p)[1]
     bp=BlockPreconditioner(A;partitioning=partitioning(A), factorization)
@@ -115,5 +126,4 @@ end
 
 """
     Allow array for precs => different precoms
-EquationBlockPreconBuilder
 """

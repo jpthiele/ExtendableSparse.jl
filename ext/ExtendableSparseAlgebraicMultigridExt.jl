@@ -5,11 +5,11 @@ using SparseArrays: SparseMatrixCSC, AbstractSparseMatrixCSC
 using LinearAlgebra: I
 
 
-import ExtendableSparse: SmoothedAggregationAMGBuilder
-import ExtendableSparse: RugeStubenAMGBuilder
+import ExtendableSparse: SmoothedAggregationPreconBuilder
+import ExtendableSparse: RugeStubenPreconBuilder
 
-(b::SmoothedAggregationAMGBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(smoothed_aggregation(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
-(b::RugeStubenAMGBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(ruge_stuben(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
+(b::SmoothedAggregationPreconBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(smoothed_aggregation(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
+(b::RugeStubenPreconBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(ruge_stuben(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
 
 
 ####

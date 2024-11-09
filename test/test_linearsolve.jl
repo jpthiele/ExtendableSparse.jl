@@ -81,10 +81,10 @@ allprecs=[
     AMGCLWrap.AMGPreconBuilder(),
     AMGCLWrap.AMGPreconBuilder(),                   
     AMGCLWrap.RLXPreconBuilder(),                   
-    ExtendableSparse.ILUZeroBuilder(),              
-    ExtendableSparse.ILUTBuilder(),              
-    ExtendableSparse.SmoothedAggregationAMGBuilder(),
-    ExtendableSparse.RugeStubenAMGBuilder()
+    ExtendableSparse.ILUZeroPreconBuilder(),              
+    ExtendableSparse.ILUTPreconBuilder(),              
+    ExtendableSparse.SmoothedAggregationPreconBuilder(),
+    ExtendableSparse.RugeStubenPreconBuilder()
 ]         
 
 @testset "iterations" begin
@@ -109,7 +109,7 @@ end
     b=A*ones(n^2);
     
     for precs in allprecs
-        iteration=KrylovJL_CG(precs=EquationBlockPreconBuilder(;precs, partitioning))
+        iteration=KrylovJL_CG(precs=BlockPreconBuilder(;precs, partitioning))
         p=LinearProblem(A,b)
         sol=solve(p, KrylovJL_CG(;precs), abstol=1.0e-12)
         @test isapprox(sol, sol0, atol=1e-6)

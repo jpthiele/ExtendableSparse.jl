@@ -54,9 +54,9 @@ include("factorizations/simple_iteration.jl")
 export simple, simple!
 
 include("preconbuilders.jl")
-export SparspakPreconBuilder, UMFPACKPreconBuilder, EquationBlockPreconBuilder, JacobiPreconBuilder
+export SparspakPreconBuilder, UMFPACKPreconBuilder, BlockPreconBuilder, JacobiPreconBuilder
 
-@public ILUZeroBuilder, SmoothedAggregationAMGBuilder, RugeStubenAMGBuilder
+@public ILUZeroPreconBuilder, ILUTPreconBuilder, SmoothedAggregationPreconBuilder, RugeStubenPreconBuilder
 
 
 include("matrix/sprand.jl")
