@@ -1,8 +1,14 @@
+iluzerowarned=false
 mutable struct ILUZeroPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::ILUZero.ILU0Precon
     phash::UInt64
     function ILUZeroPreconditioner()
+        global iluzerowarned
+        if !iluzerowarned
+            @warn "ILUZeroPreconditioner is deprecated. Use LinearSolve with `precs=ILUZeroPreconBuilder()` instead"
+            iluzerowarned=true
+        end
         p = new()
         p.phash = 0
         p
@@ -35,12 +41,18 @@ allow_views(::Type{ILUZeroPreconditioner})=true
 
 
 
+biluzerowarned=false
 mutable struct PointBlockILUZeroPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::ILUZero.ILU0Precon
     phash::UInt64
     blocksize::Int
     function PointBlockILUZeroPreconditioner(;blocksize=1)
+        global biluzerowarned
+        if !biluzerowarned
+            @warn "PointBlockILUZeroPreconditioner is deprecated. Use LinearSolve with `precs=ILUZeroPreconBuilder(; blocksize=$(blocksize))` instead"
+            biluzerowarned=true
+        end
         p = new()
         p.phash = 0
         p.blocksize=blocksize

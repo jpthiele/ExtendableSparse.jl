@@ -1,19 +1,12 @@
-# Integration with LinearSolve.jl
+# Linear System solution
 
-Starting with version 0.9.6, ExtendableSparse is compatible
-with [LinearSolve.jl](https://github.com/SciML/LinearSolve.jl).
-Since version 0.9.7, this is facilitated via the
-AbstractSparseMatrixCSC interface.
-
-```@autodocs
-Modules = [ExtendableSparse]
-Pages = ["linearsolve.jl"]
-```
-
-We can create a test problem and solve it with the `\` operator.
+## The `\` operator
+The packages overloads `\` for the ExtendableSparseMatrix type.
+The following example uses [`fdrand`](@ref) to create a test matrix and solve
+the corresponding linear system of equations.
 
 ```@example
-using ExtendableSparse # hide
+using ExtendableSparse
 A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
 x = ones(1000)
 b = A * x
@@ -21,25 +14,134 @@ y = A \ b
 sum(y)
 ```
 
-The same problem can be solved by the tools available via `LinearSolve.jl`:
+This works as well for number types besides `Float64` and related, in this case,
+by default a LU factorization based on Sparspak ist used.
 
 ```@example
-using ExtendableSparse # hide
-using LinearSolve # hide
+using ExtendableSparse
+using MultiFloats
+A = fdrand(Float64x2, 10, 10, 10; matrixtype = ExtendableSparseMatrix)
+x = ones(Float64x2,1000)
+b = A * x
+y = A \ b
+sum(y)
+```
+
+## Solving with LinearSolve.jl
+
+Starting with version 0.9.6, ExtendableSparse is compatible
+with [LinearSolve.jl](https://github.com/SciML/LinearSolve.jl).
+Since version 0.9.7, this is facilitated via the
+AbstractSparseMatrixCSC interface. 
+
+
+The same problem can be solved via `LinearSolve.jl`:
+
+```@example
+using ExtendableSparse
+using LinearSolve
 A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
 x = ones(1000)
+b = A * x
+y = solve(LinearProblem(A, b)).u
+sum(y)
+```
+
+```@example
+using ExtendableSparse
+using LinearSolve
+using MultiFloats
+A = fdrand(Float64x2, 10, 10, 10; matrixtype = ExtendableSparseMatrix)
+x = ones(Float64x2,1000)
 b = A * x
 y = solve(LinearProblem(A, b), SparspakFactorization()).u
 sum(y)
 ```
 
-Also, the iterative method interface works with ExtendableSparse.
+## Preconditioned Krylov solvers  with LinearSolve.jl
+
+Since version 1.6, preconditioner constructors can be passed to iterative solvers via the [`precs`
+keyword argument](https://docs.sciml.ai/LinearSolve/stable/basics/Preconditioners/#prec)
+to the iterative solver specification.
 
 ```@example
-using ExtendableSparse # hide
-using LinearSolve # hide
-using SparseArrays # hide
-using ILUZero # hide
+using ExtendableSparse
+using LinearSolve 
+using ExtendableSparse: ILUZeroPreconBuilder
+A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
+x = ones(1000)
+b = A * x
+y = LinearSolve.solve(LinearProblem(A, b), 
+                      KrylovJL_CG(; precs=ILUZeroPreconBuilder())).u
+sum(y)
+```
+
+## Available preconditioners
+ExtendableSparse provides constructors for preconditioners wich can be used as `precs`.
+These generally return a tuple `(Pl,I)` of a left preconditioner and a trivial right preconditioner.
+
+ExtendableSparse has a number of package extensions which construct preconditioners
+from some other packages. In the future, these packages may provide this functionality on their own.
+
+```@docs
+ExtendableSparse.ILUZeroPreconBuilder
+ExtendableSparse.ILUTPreconBuilder
+ExtendableSparse.SmoothedAggregationPreconBuilder
+ExtendableSparse.RugeStubenPreconBuilder
+```
+
+In addition, ExtendableSparse implements some preconditioners:
+
+```@docs
+ExtendableSparse.JacobiPreconBuilder
+```
+
+LU factorizations of  matrices from previous iteration steps may be good
+preconditioners for Krylov solvers called during a nonlinear solve via
+Newton's method. For this purpose, ExtendableSparse provides a preconditioner constructor
+which wraps sparse LU factorizations  supported by LinearSolve.jl
+```@docs
+ExtendableSparse.LinearSolvePreconBuilder
+```
+
+
+Block preconditioner constructors are provided as well
+```@docs;  canonical=false
+ExtendableSparse.BlockPreconBuilder
+```
+
+
+The example beloww shows how to create a  block Jacobi preconditioner where the blocks are defined by even and odd
+degrees of freedom, and the diagonal blocks are solved using UMFPACK.
+```@example
+using ExtendableSparse
+using LinearSolve 
+using ExtendableSparse: LinearSolvePreconBuilder, BlockPreconBuilder
+A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
+x = ones(1000)
+b = A * x
+partitioning=A->[1:2:size(A,1), 2:2:size(A,1)]
+umfpackprecs=LinearSolvePreconBuilder(UMFPACKFactorization())
+blockprecs=BlockPreconBuilder(;precs=umfpackprecs, partitioning)
+y = LinearSolve.solve(LinearProblem(A, b), KrylovJL_CG(; precs=blockprecs)).u
+sum(y)
+```
+`umpfackpreconbuilder` e.g. could be replaced by `SmoothedAggregationPreconBuilder()`. Moreover, this approach
+works for any `AbstractSparseMatrixCSC`.
+
+
+## Deprecated API
+Passing a preconditioner via the `Pl` or `Pr` keyword arguments
+will be deprecated in LinearSolve. ExtendableSparse used to
+export a number of wrappers for preconditioners from other packages
+for this purpose. This approach is deprecated as of v1.6 and will be removed
+with v2.0.
+
+```@example
+using ExtendableSparse
+using LinearSolve
+using SparseArray
+using ILUZero
 A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
 x = ones(1000)
 b = A * x
@@ -48,16 +150,3 @@ y = LinearSolve.solve(LinearProblem(A, b), KrylovJL_CG();
 sum(y)
 ```
 
-However, ExtendableSparse provides a number of wrappers around preconditioners
-from various Julia packages.
-```@example
-using ExtendableSparse # hide
-using LinearSolve # hide
-using ILUZero # hide
-A = fdrand(10, 10, 10; matrixtype = ExtendableSparseMatrix)
-x = ones(1000)
-b = A * x
-y = LinearSolve.solve(LinearProblem(A, b), KrylovJL_CG();
-                      Pl = ILUZeroPreconditioner(A)).u
-sum(y)
-```

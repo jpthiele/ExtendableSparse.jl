@@ -1,7 +1,7 @@
 name = "ExtendableSparse"
 uuid = "95c220a8-a1cf-11e9-0c77-dbfce5f500b3"
 authors = ["Juergen Fuhrmann <juergen.fuhrmann@wias-berlin.de>"]
-version = "1.5.3"
+version = "1.6.0"
 
 [deps]
 AMGCLWrap = "4f76b812-4ba5-496d-b042-d70715554288"
@@ -19,6 +19,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 AMGCLWrap = "4f76b812-4ba5-496d-b042-d70715554288"
 AlgebraicMultigrid = "2169fc97-5a83-5252-b627-83903c6c433c"
 IncompleteLU = "40713840-3770-5561-ab4c-a76e7d0d7895"
+LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 Pardiso = "46dd5b70-b6fb-5a00-ae2d-e8fea33afaf2"
 
 [extensions]
@@ -26,13 +27,15 @@ ExtendableSparseAMGCLWrapExt = "AMGCLWrap"
 ExtendableSparseAlgebraicMultigridExt = "AlgebraicMultigrid"
 ExtendableSparseIncompleteLUExt = "IncompleteLU"
 ExtendableSparsePardisoExt = "Pardiso"
+ExtendableSparseLinearSolveExt = "LinearSolve"
 
 [compat]
-AMGCLWrap = "0.4,1"
+AMGCLWrap = "2"
 AlgebraicMultigrid = "0.4,0.5,0.6"
 DocStringExtensions = "0.8, 0.9"
 ILUZero = "0.2"
 IncompleteLU = "^0.2.1"
+LinearSolve = "2.36.0"
 Pardiso = "0.5.1"
 Sparspak = "0.3.6"
 StaticArrays = "1.5.24"

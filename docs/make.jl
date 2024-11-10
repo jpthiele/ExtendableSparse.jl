@@ -1,4 +1,3 @@
-push!(LOAD_PATH, "../src/")
 using Documenter, ExtendableSparse, AlgebraicMultigrid, IncompleteLU, Sparspak, LinearAlgebra
 
 function mkdocs()
@@ -12,10 +11,10 @@ function mkdocs()
              pages = [
                  "Home" => "index.md",
                  "example.md",
-                 "linearsolve.md",
                  "extsparse.md",
-                 "iter.md",
+                 "linearsolve.md",
                  "internal.md",
+                 "iter.md",
                  "changes.md",
              ])
 end

@@ -21,6 +21,7 @@ if USE_GPL_LIBS
 end
 
 
+include("compat.jl") # @public
 
 include("matrix/sparsematrixcsc.jl")
 include("matrix/abstractsparsematrixextension.jl")
@@ -31,10 +32,33 @@ include("matrix/extendable.jl")
 include("matrix/genericmtextendablesparsematrixcsc.jl")
 include("matrix/genericextendablesparsematrixcsc.jl")
 
+"""
+    ExtendableSparseMatrix
+
+Aliased to [`ExtendableSparseMatrixCSC`](@ref)
+"""
 const ExtendableSparseMatrix=ExtendableSparseMatrixCSC
+
+
+"""
+    MTExtendableSparseMatrixCSC
+
+Multithreaded extendable sparse matrix  (Experimental).
+
+Aliased to [`GenericMTExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
+scalar matrix parameter.
+"""
 const MTExtendableSparseMatrixCSC{Tv,Ti}=GenericMTExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
 MTExtendableSparseMatrixCSC(m,n,args...)=MTExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
 
+"""
+    STExtendableSparseMatrixCSC
+
+Single threaded extendable sparse matrix (Experimental).
+
+Aliased to [`GenericExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
+scalar matrix parameter.
+"""
 const STExtendableSparseMatrixCSC{Tv,Ti}=GenericExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
 STExtendableSparseMatrixCSC(m,n,args...)=STExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
 
@@ -52,13 +76,21 @@ include("factorizations/factorizations.jl")
 include("factorizations/simple_iteration.jl")
 export simple, simple!
 
+include("preconbuilders.jl")
+export LinearSolvePreconBuilder, BlockPreconBuilder, JacobiPreconBuilder
+
+@public ILUZeroPreconBuilder, ILUTPreconBuilder, SmoothedAggregationPreconBuilder, RugeStubenPreconBuilder
+
+
 include("matrix/sprand.jl")
 export sprand!, sprand_sdd!, fdrand, fdrand!, fdrand_coo, solverbenchmark
 
 export rawupdateindex!, updateindex!
 
 
-
+#####
+# All of the following is deprecated in favor of the precs bases
+# API
 
 export JacobiPreconditioner,
     ILU0Preconditioner,
@@ -207,5 +239,6 @@ Pardiso.set_iparm!(plu.ps,5,13.0)
 """
 function MKLPardisoLU end
 export MKLPardisoLU
+
 
 end # module

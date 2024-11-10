@@ -9,8 +9,10 @@ ILUZero = "88f59080-6952-5380-9ea5-54057fb9a43f"
 IncompleteLU = "40713840-3770-5561-ab4c-a76e7d0d7895"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
+MultiFloats = "bdf0d083-296b-4888-a5b6-7498122e68a5"
 Sparspak = "e56a9233-b9d6-4f03-8d0f-1825330902ac"
 
 [compat]
 Documenter = "1.0"
 IterativeSolvers = "0.9"
+LinearSolve = "2.36.0"
