@@ -2,7 +2,7 @@ module ExtendableSparsePardisoExt
 using ExtendableSparse
 using LinearAlgebra
 using Pardiso
-
+# Deprecated
 import ExtendableSparse: @makefrommatrix, update!, AbstractLUFactorization
 
 abstract type AbstractPardisoLU <: AbstractLUFactorization end

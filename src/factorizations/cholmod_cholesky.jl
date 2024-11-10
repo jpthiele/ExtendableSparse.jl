@@ -13,6 +13,7 @@ CholeskyFactorization(matrix)
 Default Cholesky factorization via cholmod.
 """
 function CholeskyFactorization()
+    global cholwarned
     if !cholwarned
         @warn "ExtendableSparse.CholeskyFactorization is deprecated. Use LinearSolve.CholeskyFactorization` instead"
         cholwarned=true
