@@ -112,7 +112,7 @@ from partition of unknowns.
 
 - `precs(A,p)` shall return a left precondioner for a matrix block.
 """
-Base.@kwdef struct BlockPreconBuilder
+Base.@kwdef mutable struct BlockPreconBuilder
     precs=UMFPACKPreconBuilder()
     partitioning= A -> [1:size(A,1)]
 end

@@ -26,7 +26,7 @@ struct JacobiPreconBuilder end
 Return callable object constructing a left zero fill-in ILU preconditioner 
 using [ILUZero.jl](https://github.com/mcovalt/ILUZero.jl)
 """
-Base.@kwdef struct ILUZeroPreconBuilder
+Base.@kwdef mutable struct ILUZeroPreconBuilder
     blocksize::Int = 1
 end
 
