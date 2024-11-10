@@ -1,7 +1,7 @@
 # Factorizations & Preconditioners
 
 This functionality is deprecated as of version 1.6 an will be removed
-with  version 2.0. Use the  [integration with LinearSolve.jl](/linearsolve/#Integration-with-LinearSolve.jl)
+with  version 2.0. Use the  [integration with LinearSolve.jl](/linearsolve/#Integration-with-LinearSolve.jl).
 
 
 ## Factorizations
