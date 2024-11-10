@@ -8,10 +8,10 @@
 - Move AMGBuilder, ILUZeroBuilder etc. to the correspondig packages (depending on the PRs)
 - remove "old" SparseMatrixLNK (need to benchmark before)
 
-## [1.6.0] - WIP
+## [1.6.0] - 2024-11-10
 - Support precs API of LinearSolve.jl
 
-## [1.5.3] - 2024-10-07
+## [1.5.3] - 2024-11-07
 - Moved repo to WIAS-PDELib organization
 
 ## [1.5.2] - 2024-10-07
