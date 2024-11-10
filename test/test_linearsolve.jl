@@ -57,6 +57,7 @@ end
 end
 
 factorizations=[UMFPACKFactorization(),
+                SparspakFactorization(),
                 KLUFactorization(reuse_symbolic=false)]
 
 if !Sys.isapple()
@@ -104,18 +105,16 @@ allprecs=[
 end
 
 
-moreprecs=[ExtendableSparse.UMFPACKPreconBuilder(),
-           ExtendableSparse.SparspakPreconBuilder(),
-           ExtendableSparse.CholeskyPreconBuilder()]
+luprecs=[ExtendableSparse.LinearSolvePreconBuilder(factorization) for  factorization in factorizations]
 
-@testset "equationblock" begin
+@testset "block preconditioning" begin
     n=100
     A=fdrand(n,n)
     partitioning=A->[1:2:size(A,1), 2:2:size(A,1)]
     sol0=ones(n^2)
     b=A*ones(n^2);
     
-    for precs in vcat(allprecs, moreprecs)
+    for precs in vcat(allprecs, luprecs)
         iteration=KrylovJL_CG(precs=BlockPreconBuilder(;precs, partitioning))
         p=LinearProblem(A,b)
         sol=solve(p, KrylovJL_CG(;precs), abstol=1.0e-12)

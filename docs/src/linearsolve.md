@@ -69,16 +69,13 @@ ExtendableSparse.JacobiPreconBuilder
 
 LU factorizations of  matrices from previous iteration steps may be good
 preconditioners for Krylov solvers called during a nonlinear solve via
-Newton's method. For this purpose, ExtendableSparse provides preconditioner constructors
-which wrap sparse LU factorizations.
-
+Newton's method. For this purpose, ExtendableSparse provides a preconditioner constructor
+which wraps sparse LU factorizations  supported by LinearSolve.jl
 ```@docs
-ExtendableSparse.UMFPACKPreconBuilder
-ExtendableSparse.SparspakPreconBuilder
+ExtendableSparse.LinearSolvePreconBuilder
 ```
 
 Block preconditioner constructors are provided as well
-
 ```@docs;  canonical=false
 ExtendableSparse.BlockPreconBuilder
 ```

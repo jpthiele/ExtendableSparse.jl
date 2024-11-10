@@ -1,38 +1,14 @@
 """
-    UMFPACKPreconBuilder()
+        LinearSolvePreconBuilder(; method=UMFPACKFactorization())
 
-Return callable object constructing a formal left preconditioner from an LU factorization using UMFPACK to be passed
-as the `precs` parameter to iterative methods wrapped by LinearSolve.jl.
+Return callable object constructing a formal left preconditioner from a sparse LU factorization using LinearSolve
+as the `precs` parameter for a  [`BlockPreconBuilder`](@ref)  or  iterative methods wrapped by LinearSolve.jl.
 """
-struct UMFPACKPreconBuilder end
-@static if USE_GPL_LIBS
-(::UMFPACKPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(SparseArrays.UMFPACK.UmfpackLU(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A))),LinearAlgebra.I)
+Base.@kwdef struct LinearSolvePreconBuilder
+    method=UMFPACKFactorization()
 end
+(::LinearSolvePreconBuilder)(A,p)= error("import LinearSolve in order to use LinearSolvePreconBuilder")
 
-"""
-    CholeskyPreconBuilder()
-
-Return callable object constructing a formal left preconditioner from a Cholesky factorization using CHOLMOD to be passed
-as the `precs` parameter to iterative methods wrapped by LinearSolve.jl.
-"""
-struct CholeskyPreconBuilder end
-@static if USE_GPL_LIBS
-(::CholeskyPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(cholesky(Symmetric(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A)))),LinearAlgebra.I)
-
-# Harrr!!! ☠
-LinearAlgebra.ldiv!(fact::SparseArrays.CHOLMOD.Factor, v) = fact \ v
-
-end
-
-
-"""
-    SparspakPreconBuilder()
-
-Return callable object constructing a formal left preconditioner from an LU factorization using Sparspak to be passed
-as the `precs` parameter to iterative methods wrapped by LinearSolve.jl.
-"""
-struct SparspakPreconBuilder end
-(::SparspakPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(sparspaklu(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A))),LinearAlgebra.I)
 
 """
     JacobiPreconBuilder()
