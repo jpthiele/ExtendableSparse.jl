@@ -30,25 +30,28 @@ Base.@kwdef struct ILUZeroPreconBuilder
     blocksize::Int = 1
 end
 
+struct ILUBlockPrecon{N,NN,Tv,Ti}
+    ilu0::ILUZero.ILU0Precon{SMatrix{N, N, Tv, NN}, Ti, SVector{N, Tv}}
+end
+
+function LinearAlgebra.ldiv!(Y::Vector{Tv},
+                             A::ILUBlockPrecon{N,NN,Tv,Ti},
+                             B::Vector{Tv}) where {N,NN,Tv,Ti}
+    BY=reinterpret(SVector{N,Tv},Y)
+    BB=reinterpret(SVector{N,Tv},B)
+    ldiv!(BY,A.ilu0,BB)
+    Y
+end
+
 function (b::ILUZeroPreconBuilder)(A0,p)
     A=SparseMatrixCSC(size(A0)..., getcolptr(A0), rowvals(A0),nonzeros(A0))
     if b.blocksize==1
         (ILUZero.ilu0(A),LinearAlgebra.I)
     else
-        (ILUZero.ilu0(pointblock(A,b.blocksize),SVector{b.blocksize,eltype(A)}),LinearAlgebra.I)
+        (ILUBlockPrecon(ILUZero.ilu0(pointblock(A,b.blocksize),SVector{b.blocksize,eltype(A)})),LinearAlgebra.I)
     end
 end
 
-# Harrr!!! ☠
-# We could resolve this piracy by introducing a wrapper type for the block case.
-function LinearAlgebra.ldiv!(Y::Vector{Tv},
-                             A::ILUZero.ILU0Precon{SMatrix{N, N, Tv, NN}, Ti, SVector{N, Tv}},
-                             B::Vector{Tv}) where {N,NN,Tv,Ti}
-    BY=reinterpret(SVector{N,Tv},Y)
-    BB=reinterpret(SVector{N,Tv},B)
-    ldiv!(BY,A,BB)
-    Y
-end
 
 """
     ILUTPreconBuilder(; droptol=0.1)
