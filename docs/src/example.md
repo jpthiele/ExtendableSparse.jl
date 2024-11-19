@@ -108,7 +108,7 @@ and assemble it into the global one.
 The code uses the index access API for the creation of the matrix,
 inserting elements via `A[i,j]+=v`,
 using an intermediate linked list structure which upon return
-ist flushed into a SparseMatrixCSC structure.
+is flushed into a SparseMatrixCSC structure.
 
 ```@example 1
 @belapsed fdrand(30, 30, 30, matrixtype = ExtendableSparseMatrix)

@@ -53,7 +53,7 @@ function test_correctness_update(N,
     for np in allnp
         # Reset the nonzeros, keeping the structure intact
         nonzeros(A) .= 0
-        # Parallel assembly whith np threads
+        # Parallel assembly with np threads
         pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
         reset!(A, np)
         @show num_partitions_per_color(pgrid)

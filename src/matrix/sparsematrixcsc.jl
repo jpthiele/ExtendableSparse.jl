@@ -25,11 +25,11 @@ end
 """
 $(SIGNATURES)
 
-Update element of the matrix  with operation `op` whithout
+Update element of the matrix  with operation `op` without
 introducing new nonzero elements.
 
 This can replace the following code and save one index
-search during acces:
+search during access:
 
 ```@example
 using ExtendableSparse # hide
@@ -61,7 +61,7 @@ end
 """
 $(SIGNATURES)
 
-Trival flush! method for allowing to run the code with both `ExtendableSparseMatrix` and
+Trivial flush! method for allowing to run the code with both `ExtendableSparseMatrix` and
 `SparseMatrixCSC`.
 """
 flush!(csc::SparseMatrixCSC) = csc

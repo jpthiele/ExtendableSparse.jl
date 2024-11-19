@@ -22,7 +22,7 @@ function test(T)
 
     if !(t1 / t0 < 10 && t0 / t2 < 10)
         @warn """timing test failed.
-If this occurs just once ot twice, it is probably due to CPU noise.
+If this occurs just once or twice, it is probably due to CPU noise.
 So we nevertheless count this as passing.
 """
     end

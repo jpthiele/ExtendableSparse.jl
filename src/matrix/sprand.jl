@@ -128,7 +128,7 @@ end
 """
 $(SIGNATURES)
 
-Create SparseMatrixCSC via COO intermedite arrrays
+Create SparseMatrixCSC via COO intermedite arrays
 """
 
 function fdrand_coo(T, nx, ny = 1, nz = 1; rand = () -> rand())
@@ -194,7 +194,7 @@ with ``d=1`` if  `nx>1 && ny==1 && nz==1`, ``d=2`` if  `nx>1 && ny>1 && nz==1` a
 ```math
     \\begin{align*}
              -\\nabla a \\nabla u &= f&&  \\text{in}\\;  \\Omega  \\\\
-    a\\nabla u\\cdot \\vec n + bu &=g && \\text{on}\\;  \\partial\\Omega
+    a\\nabla u\\cdot \\vec n + b u &=g && \\text{on}\\;  \\partial\\Omega
     \\end{align*}
 ```
 
