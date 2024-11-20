@@ -47,7 +47,7 @@ mutable struct SparseMatrixDILNKC{Tv, Ti <: Integer} <: AbstractSparseMatrixExte
     rowval::Vector{Ti}
 
     """
-    Nonzero entry values correspondin to each pair
+    Nonzero entry values corresponding to each pair
     (colptr[index],rowval[index])
     """
     nzval::Vector{Tv}

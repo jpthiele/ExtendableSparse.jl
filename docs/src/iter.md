@@ -22,7 +22,7 @@ Private = false
 
 Handling of the LU factorizations is meant to support
 a workflow where sequences of problems are solved based
-on the same matrix, where one possibly wants to re-use
+on the same matrix, where one possibly wants to reuse
 existing symbolic factorization data.
 
 The support comes in two flavors.

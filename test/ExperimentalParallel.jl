@@ -12,8 +12,8 @@ import ChunkSplitters
 
 """
 
-Return colored partitioing of grid made up by `X` and `Y`  for work with `max(nt,4)` threads
-as a vector `p` of a vector pairs of index ranges such that `p[i]` containes partions
+Return colored partitioning of grid made up by `X` and `Y`  for work with `max(nt,4)` threads
+as a vector `p` of a vector pairs of index ranges such that `p[i]` contains partitions
 of color i which can be assembled independently.
 
 The current algorithm  creates `nt^2` partitions with `nt` colors.

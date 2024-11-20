@@ -23,7 +23,7 @@ function simple!(u,
     res = A * u - b # initial residual
     upd = similar(res)
     r0 = norm(res) # residual norm
-    history = [r0]  # intialize history recording
+    history = [r0]  # initialize history recording
     for i = 1:maxiter
         ldiv!(upd, Pl, res)
         u .-= upd # solve preconditioning system and update solution

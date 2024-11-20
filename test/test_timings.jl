@@ -25,7 +25,7 @@ function test(T, k, l, m)
 
     if !(t3 < t2 < t1)
         @warn """timing test failed for $T $k x $l x $m.
-If this occurs just once ot twice, it is probably due to CPU noise.
+If this occurs just once or twice, it is probably due to CPU noise.
 So we nevertheless count this as passing.
 """
     end

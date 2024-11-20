@@ -104,7 +104,7 @@ With the advent of LinearSolve.jl, this functionality probably will be reduced t
 ### Interfaces to other packages
 
 The package directly provides interfaces to other sparse matrix solvers and preconditioners. Dependencies on these
-packages are handeled via [Requires.jl](https://github.com/JuliaPackaging/Requires.jl).
+packages are handled via [Requires.jl](https://github.com/JuliaPackaging/Requires.jl).
 Currently, support includes:
 
   - [Pardiso.jl](https://github.com/JuliaSparse/Pardiso.jl) (both ["project Pardiso"](https://pardiso-project.org)

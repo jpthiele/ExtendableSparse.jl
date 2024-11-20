@@ -121,7 +121,7 @@ end
 """
 $(SIGNATURES)
 
-Create similar but emtpy extendableSparseMatrix
+Create similar but empty extendableSparseMatrix
 """
 function Base.similar(m::ExtendableSparseMatrixCSC{Tv, Ti}) where {Tv, Ti}
     ExtendableSparseMatrixCSC{Tv, Ti}(size(m)...)
@@ -136,7 +136,7 @@ $(SIGNATURES)
 
 Update element of the matrix  with operation `op`.
 This can replace the following code and save one index
-search during acces:
+search during access:
 
 ```@example
 using ExtendableSparse # hide

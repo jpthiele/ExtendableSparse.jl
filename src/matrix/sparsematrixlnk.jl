@@ -59,7 +59,7 @@ mutable struct SparseMatrixLNK{Tv, Ti <: Integer} <: AbstractSparseMatrixExtensi
     rowval::Vector{Ti}
 
     """
-    Nonzero entry values correspondin to each pair
+    Nonzero entry values corresponding to each pair
     (colptr[index],rowval[index])
 
     Initial length is n,  it grows with each new entry.

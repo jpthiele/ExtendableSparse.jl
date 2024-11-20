@@ -4,7 +4,7 @@
 `nm` is the number of nodes in each dimension (Examples: 2d: nm = (100,100) -> 100 x 100 grid, 3d: nm = (50,50,50) -> 50 x 50 x 50 grid).
 `nt` is the number of threads.
 `depth` is the number of partition layers, for depth=1, there are nt parts and 1 separator, for depth=2, the separator is partitioned again, leading to 2*nt+1 submatrices...
-To assemble the system matrix parallely, things such as `cellsforpart` (= which thread takes which cells) need to be computed in advance. This is done here.
+To assemble the system matrix parallelly, things such as `cellsforpart` (= which thread takes which cells) need to be computed in advance. This is done here.
 
 This should be somewhere else, longterm
 """
@@ -58,7 +58,7 @@ end
 `function get_nnnts_and_sortednodesperthread_and_noderegs_from_cellregs_ps_less_reverse_nopush(cellregs, allcells, start, nn, Ti, nt)`
 
 After the cellregions (partitioning of the grid) of the grid have been computed, other things have to be computed, such as `sortednodesperthread` a depth+1 x num_nodes matrix, here `sortednodesperthreads[i,j]` is the point at which the j-th node appears in the i-th level matrix in the corresponding submatrix.
-`cellregs` contains the partiton for each cell.
+`cellregs` contains the partition for each cell.
 Furthermore, `nnts` (number of nodes of the threads) is computed, which contain for each thread the number of nodes that are contained in the cells of that thread.
 `allcells` and `start` together behave like the rowval and colptr arrays of a CSC matrix, such that `allcells[start[j]:start[j+1]-1]` are all cells that contain the j-th node.
 `nn` is the number of nodes in the grid.
@@ -172,7 +172,7 @@ end
 """
 `function separate!(cellregs, nc, ACSC, nt, level0, ctr_sepanodes)`
 
-This function partitons the separator, which is done if `depth`>1 (see `grid_to_graph_ps_multi!` and/or `preparatory_multi_ps`).
+This function partitions the separator, which is done if `depth`>1 (see `grid_to_graph_ps_multi!` and/or `preparatory_multi_ps`).
 `cellregs` contains the regions/partitions/colors of each cell. 
 `nc` is the number of cells in the grid.
 `ACSC` is the adjacency matrix of the graph of the (separator-) grid (vertex in graph is cell in grid, edge in graph means two cells share a node) stored as a CSC. 
@@ -217,7 +217,7 @@ function separate!(cellregs, ACSC, nt, level0, ctr_sepanodes, ri, gi, do_print)
         cellregs[gi[i]] = level0*nt + cellregs2[i]
     end
 
-	# how many cells are in the separator of the new partiton (which is only computed on the separator of the old partition)
+	# how many cells are in the separator of the new partition (which is only computed on the separator of the old partition)
     new_ctr_sepanodes = 0
     ri2 = Vector{Int64}(undef, ctr_sepanodes)
     gi2 = Vector{Int64}(undef, ctr_sepanodes)
@@ -255,7 +255,7 @@ end
 """
 `function grid_to_graph_ps_multi_nogrid!(nc, nn, mat_cell_node, nt, depth)`
 
-The function assigns colors/partitons to each cell in the `grid`. First, the grid is partitoned into `nt` partitions. If `depth` > 1, the separator is partitioned again...
+The function assigns colors/partitions to each cell in the `grid`. First, the grid is partitioned into `nt` partitions. If `depth` > 1, the separator is partitioned again...
 The grid is specified by nc (number of cells), nn (number of nodes) and the mat_cell_node (i.e. grid[CellNodes] if ExtendableGrids is used). 
 Here, `mat_cell_node[k,i]` is the i-th node in the k-th cell. 
 `nt` is the number of threads.
@@ -689,24 +689,24 @@ end
 """
 `function add_all_par!(As)`
 
-Add LNK matrices (stored in a vector) parallely (tree structure).
+Add LNK matrices (stored in a vector) parallelly (tree structure).
 The result is stored in the first LNK matrix.
 """
 function add_all_par!(As)
 	nt = length(As)
 	depth = Int(floor(log2(nt)))
-	ende = nt
+	endpoint = nt
 	for level=1:depth
 		
 		@threads for tid=1:2^(depth-level)
 			#@info "$level, $tid"
 			start = tid+2^(depth-level)
-			while start <= ende
+			while start <= endpoint
 				As[tid] += As[start]
 				start += 2^(depth-level)
 			end
 		end
-		ende = 2^(depth-level)
+		endpoint = 2^(depth-level)
 	end
 	As[1]
 

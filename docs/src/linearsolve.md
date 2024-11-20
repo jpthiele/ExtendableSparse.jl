@@ -15,7 +15,7 @@ sum(y)
 ```
 
 This works as well for number types besides `Float64` and related, in this case,
-by default a LU factorization based on Sparspak ist used.
+by default a LU factorization based on Sparspak is used.
 
 ```@example
 using ExtendableSparse
@@ -77,7 +77,7 @@ sum(y)
 ```
 
 ## Available preconditioners
-ExtendableSparse provides constructors for preconditioners wich can be used as `precs`.
+ExtendableSparse provides constructors for preconditioners which can be used as `precs`.
 These generally return a tuple `(Pl,I)` of a left preconditioner and a trivial right preconditioner.
 
 ExtendableSparse has a number of package extensions which construct preconditioners
