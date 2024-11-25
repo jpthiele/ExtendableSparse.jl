@@ -56,4 +56,3 @@ Introducd 1.9 extensions
 
 - Implement AbstractSparseMatrixCSC interface.
 - Remove extension of LinearSolve methodsa
-

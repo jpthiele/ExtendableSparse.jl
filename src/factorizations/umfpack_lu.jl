@@ -25,4 +25,3 @@ function update!(lufact::LUFactorization)
     end
     lufact
 end
-

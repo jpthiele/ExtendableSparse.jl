@@ -40,4 +40,3 @@ export     reorderlinsys, nnz_noflush
 
 
 end
-

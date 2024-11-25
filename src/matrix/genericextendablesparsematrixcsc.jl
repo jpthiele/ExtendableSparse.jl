@@ -90,4 +90,3 @@ function updateindex!(ext::GenericExtendableSparseMatrixCSC,
         updateindex!(ext.xmatrix,op,v,i,j)
     end
 end
-

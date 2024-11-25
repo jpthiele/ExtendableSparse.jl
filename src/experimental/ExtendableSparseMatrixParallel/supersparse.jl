@@ -785,14 +785,3 @@ end
 function form(x)
 	[minimum(x), mean(x), maximum(x)]
 end
-
-
-
-
-
-
-
-
-
-
-

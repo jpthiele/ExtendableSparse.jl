@@ -316,5 +316,3 @@ function pointblock(A0::ExtendableSparseMatrixCSC{Tv,Ti},blocksize) where {Tv,Ti
     end
     flush!(Ab)
 end
-
-
