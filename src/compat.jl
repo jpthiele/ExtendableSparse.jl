@@ -15,4 +15,3 @@ macro public(ex)
         nothing
     end
 end
-
