@@ -13,7 +13,7 @@ function test_bslash(T, k, l, m)
     A = fdrand(T, k, l, m; rand = () -> one(T), matrixtype = ExtendableSparseMatrix)
     x = ones(T, size(A, 1))
     b = A * x
-    norm(f64.(A \ b - x))
+    return norm(f64.(A \ b - x))
 end
 
 function test_bslash(T)
@@ -21,7 +21,7 @@ function test_bslash(T)
     atol = 10.0 * sqrt(f64(eps(T)))
     @test isapprox(test_bslash(T, 100, 1, 1), 0.0; atol)
     @test isapprox(test_bslash(T, 20, 20, 1), 0.0; atol)
-    @test isapprox(test_bslash(T, 10, 10, 10), 0.0; atol)
+    return @test isapprox(test_bslash(T, 10, 10, 10), 0.0; atol)
 end
 
 test_bslash(Float32)

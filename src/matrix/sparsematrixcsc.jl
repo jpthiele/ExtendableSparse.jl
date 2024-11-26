@@ -55,7 +55,7 @@ function updateindex!(csc::SparseMatrixCSC{Tv, Ti}, op, v, i, j) where {Tv, Ti <
     else # insert new value
         csc[i, j] = op(zero(Tv), v)
     end
-    csc
+    return csc
 end
 
 """
@@ -81,12 +81,12 @@ Check if sparsity patterns of two SparseMatrixCSC objects are equal.
 This is generally faster than comparing hashes.
 """
 function pattern_equal(a::SparseMatrixCSC, b::SparseMatrixCSC)
-    a.colptr == b.colptr && a.rowval == b.rowval
+    return a.colptr == b.colptr && a.rowval == b.rowval
 end
 
 
-function pointblock(A::SparseMatrixCSC,blocksize)
-    SparseMatrixCSC(pointblock(ExtendableSparseMatrix(A),blocksize))
+function pointblock(A::SparseMatrixCSC, blocksize)
+    return SparseMatrixCSC(pointblock(ExtendableSparseMatrix(A), blocksize))
 end
 
 """
@@ -94,20 +94,20 @@ end
 
 Return boolean vector marking Dirichlet nodes, known by `A[i,i]>=penalty`
 """
-function mark_dirichlet(A::SparseMatrixCSC; penalty=1.0e20)
-    colptr=A.colptr
-    rowval=A.rowval
-    nzval=A.nzval
-    n=A.n
-    dirichlet=zeros(Bool,n)
-    for i=1:n
-        for j=colptr[i]:colptr[i+1]-1
-            if rowval[j]==i && nzval[j]>=penalty
-                dirichlet[i]=true
+function mark_dirichlet(A::SparseMatrixCSC; penalty = 1.0e20)
+    colptr = A.colptr
+    rowval = A.rowval
+    nzval = A.nzval
+    n = A.n
+    dirichlet = zeros(Bool, n)
+    for i in 1:n
+        for j in colptr[i]:(colptr[i + 1] - 1)
+            if rowval[j] == i && nzval[j] >= penalty
+                dirichlet[i] = true
             end
         end
     end
-    dirichlet
+    return dirichlet
 end
 
 """
@@ -121,30 +121,30 @@ for a node `i` marked as Dirichlet.
 
 Returns A.
 """
-function eliminate_dirichlet!(A::SparseMatrixCSC,dirichlet)
-    colptr=A.colptr
-    rowval=A.rowval
-    nzval=A.nzval
-    n=A.n
-    for i=1:n
+function eliminate_dirichlet!(A::SparseMatrixCSC, dirichlet)
+    colptr = A.colptr
+    rowval = A.rowval
+    nzval = A.nzval
+    n = A.n
+    for i in 1:n
         # set off-diagonal column indiced to zero
         if !iszero(dirichlet[i])
-            for j=colptr[i]:colptr[i+1]-1
-                if rowval[j]==i
-                    nzval[j]=1
+            for j in colptr[i]:(colptr[i + 1] - 1)
+                if rowval[j] == i
+                    nzval[j] = 1
                 else
-                    nzval[j]=0
+                    nzval[j] = 0
                 end
             end
         end
         # set off-diagonal row indices to zero
-        for j=colptr[i]:colptr[i+1]-1
-            if rowval[j]!=i && !iszero(dirichlet[rowval[j]])
-                nzval[j]=0
+        for j in colptr[i]:(colptr[i + 1] - 1)
+            if rowval[j] != i && !iszero(dirichlet[rowval[j]])
+                nzval[j] = 0
             end
         end
     end
-    A
+    return A
 end
 
 """
@@ -159,7 +159,7 @@ for a node `i` marked as Dirichlet.
 
 Returns B.
 """
-function eliminate_dirichlet(A::SparseMatrixCSC,dirichlet)
-    B=SparseMatrixCSC(A.m,A.n,A.colptr,A.rowval,copy(A.nzval))
-    eliminate_dirichlet!(B,dirichlet)
+function eliminate_dirichlet(A::SparseMatrixCSC, dirichlet)
+    B = SparseMatrixCSC(A.m, A.n, A.colptr, A.rowval, copy(A.nzval))
+    return eliminate_dirichlet!(B, dirichlet)
 end

@@ -2,17 +2,16 @@ mutable struct BlockPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization
     phash::UInt64
-    partitioning::Union{Nothing,Vector{AbstractVector}}
+    partitioning::Union{Nothing, Vector{AbstractVector}}
     facts::Vector
-    function BlockPreconditioner(;partitioning=nothing, factorization=ExtendableSparse.LUFactorization) 
+    function BlockPreconditioner(; partitioning = nothing, factorization = ExtendableSparse.LUFactorization)
         p = new()
         p.phash = 0
-        p.partitioning=partitioning
-        p.factorization=factorization
-        p
+        p.partitioning = partitioning
+        p.factorization = factorization
+        return p
     end
 end
-
 
 
 """
@@ -32,72 +31,70 @@ Factorizations on matrix partitions within a block preconditioner may or may not
 E.g. the umfpack factorization cannot work with views, while ILUZeroPreconditioner can.
  Implementing a method for `allow_views` returning `false` resp. `true` allows to dispatch to the proper case.
 """
-allow_views(::Any)=false
+allow_views(::Any) = false
 
 
 function update!(precon::BlockPreconditioner)
     flush!(precon.A)
-    nall=sum(length,precon.partitioning)
-    n=size(precon.A,1)
-    if nall!=n
-	@warn "sum(length,partitioning)=$(nall) but n=$(n)"
+    nall = sum(length, precon.partitioning)
+    n = size(precon.A, 1)
+    if nall != n
+        @warn "sum(length,partitioning)=$(nall) but n=$(n)"
     end
 
     if isnothing(precon.partitioning)
-        partitioning=[1:n]
+        partitioning = [1:n]
     end
 
-    np=length(precon.partitioning)
-    precon.facts=Vector{Any}(undef,np)
-    Threads.@threads for ipart=1:np
-        factorization=deepcopy(precon.factorization)
-        AP=precon.A[precon.partitioning[ipart],precon.partitioning[ipart]]
-        FP=factorization(AP)
-        precon.facts[ipart]=FP
+    np = length(precon.partitioning)
+    precon.facts = Vector{Any}(undef, np)
+    return Threads.@threads for ipart in 1:np
+        factorization = deepcopy(precon.factorization)
+        AP = precon.A[precon.partitioning[ipart], precon.partitioning[ipart]]
+        FP = factorization(AP)
+        precon.facts[ipart] = FP
     end
 end
 
 
-
-
-function LinearAlgebra.ldiv!(p::BlockPreconditioner,v) 
-    partitioning=p.partitioning
-    facts=p.facts
-    np=length(partitioning)
+function LinearAlgebra.ldiv!(p::BlockPreconditioner, v)
+    partitioning = p.partitioning
+    facts = p.facts
+    np = length(partitioning)
 
     if allow_views(p.factorization)
-        Threads.@threads for ipart=1:np
-	    ldiv!(facts[ipart],view(v,partitioning[ipart]))
+        Threads.@threads for ipart in 1:np
+            ldiv!(facts[ipart], view(v, partitioning[ipart]))
         end
     else
-        Threads.@threads for ipart=1:np
-            vv=v[partitioning[ipart]]
-	    ldiv!(facts[ipart],vv)
-            view(v,partitioning[ipart]).=vv
+        Threads.@threads for ipart in 1:np
+            vv = v[partitioning[ipart]]
+            ldiv!(facts[ipart], vv)
+            view(v, partitioning[ipart]) .= vv
         end
     end
-    v
+    return v
 end
 
-function LinearAlgebra.ldiv!(u,p::BlockPreconditioner,v)
-    partitioning=p.partitioning
-    facts=p.facts
-    np=length(partitioning)
-    if allow_views(p.factorization) 
-        Threads.@threads for ipart=1:np
-	    ldiv!(view(u,partitioning[ipart]),facts[ipart],view(v,partitioning[ipart]))
+function LinearAlgebra.ldiv!(u, p::BlockPreconditioner, v)
+    partitioning = p.partitioning
+    facts = p.facts
+    np = length(partitioning)
+    if allow_views(p.factorization)
+        Threads.@threads for ipart in 1:np
+            ldiv!(view(u, partitioning[ipart]), facts[ipart], view(v, partitioning[ipart]))
         end
     else
-        Threads.@threads for ipart=1:np
-            uu=u[partitioning[ipart]]
-	    ldiv!(uu,facts[ipart],v[partitioning[ipart]])
-            view(u,partitioning[ipart]).=uu
+        Threads.@threads for ipart in 1:np
+            uu = u[partitioning[ipart]]
+            ldiv!(uu, facts[ipart], v[partitioning[ipart]])
+            view(u, partitioning[ipart]) .= uu
         end
     end
-    u
+    return u
 end
 
-Base.eltype(p::BlockPreconditioner)=eltype(p.facts[1])
+Base.eltype(p::BlockPreconditioner) = eltype(p.facts[1])
 
 
 """
@@ -113,15 +110,15 @@ from partition of unknowns.
 - `precs(A,p)` shall return a left precondioner for a matrix block.
 """
 Base.@kwdef mutable struct BlockPreconBuilder
-    precs=UMFPACKPreconBuilder()
-    partitioning= A -> [1:size(A,1)]
+    precs = UMFPACKPreconBuilder()
+    partitioning = A -> [1:size(A, 1)]
 end
 
-function (blockprecs::BlockPreconBuilder)(A,p)
-    (;precs, partitioning)=blockprecs
-    factorization= A->precs(A,p)[1]
-    bp=BlockPreconditioner(A;partitioning=partitioning(A), factorization)
-    (bp,LinearAlgebra.I)
+function (blockprecs::BlockPreconBuilder)(A, p)
+    (; precs, partitioning) = blockprecs
+    factorization = A -> precs(A, p)[1]
+    bp = BlockPreconditioner(A; partitioning = partitioning(A), factorization)
+    return (bp, LinearAlgebra.I)
 end
 
 """

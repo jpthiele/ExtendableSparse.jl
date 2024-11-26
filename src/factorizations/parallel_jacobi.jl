@@ -2,43 +2,44 @@ mutable struct _ParallelJacobiPreconditioner{Tv}
     invdiag::Vector{Tv}
 end
 
-function pjacobi(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti}
+function pjacobi(A::SparseMatrixCSC{Tv, Ti}) where {Tv, Ti}
     invdiag = Array{Tv, 1}(undef, A.n)
     n = A.n
-    Threads.@threads for i = 1:n
+    Threads.@threads for i in 1:n
         invdiag[i] = one(Tv) / A[i, i]
     end
-    _ParallelJacobiPreconditioner(invdiag)
+    return _ParallelJacobiPreconditioner(invdiag)
 end
 
-function pjacobi!(p::_ParallelJacobiPreconditioner{Tv},A::SparseMatrixCSC{Tv,Ti})where {Tv,Ti}
+function pjacobi!(p::_ParallelJacobiPreconditioner{Tv}, A::SparseMatrixCSC{Tv, Ti}) where {Tv, Ti}
     n = A.n
-    Threads.@threads for i = 1:n
+    Threads.@threads for i in 1:n
         p.invdiag[i] = one(Tv) / A[i, i]
     end
-    p
+    return p
 end
 
 
-function LinearAlgebra.ldiv!(u,p::_ParallelJacobiPreconditioner,v)
-    n=length(p.invdiag)
-    for i = 1:n
+function LinearAlgebra.ldiv!(u, p::_ParallelJacobiPreconditioner, v)
+    n = length(p.invdiag)
+    for i in 1:n
         @inbounds u[i] = p.invdiag[i] * v[i]
     end
+    return
 end
 
-LinearAlgebra.ldiv!(p::_ParallelJacobiPreconditioner,v)=ldiv!(v,p,v)
+LinearAlgebra.ldiv!(p::_ParallelJacobiPreconditioner, v) = ldiv!(v, p, v)
 
 
 mutable struct ParallelJacobiPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
-    factorization::Union{_ParallelJacobiPreconditioner,Nothing}
+    factorization::Union{_ParallelJacobiPreconditioner, Nothing}
     phash::UInt64
     function ParallelJacobiPreconditioner()
         p = new()
         p.factorization = nothing
-        p.phash=0
-        p
+        p.phash = 0
+        return p
     end
 end
 
@@ -54,15 +55,15 @@ function ParallelJacobiPreconditioner end
 
 function update!(p::ParallelJacobiPreconditioner)
     flush!(p.A)
-    Tv=eltype(p.A)
-    if p.A.phash!=p.phash || isnothing(p.factorization)
-        p.factorization=pjacobi(p.A.cscmatrix)
-        p.phash=p.A.phash
+    Tv = eltype(p.A)
+    if p.A.phash != p.phash || isnothing(p.factorization)
+        p.factorization = pjacobi(p.A.cscmatrix)
+        p.phash = p.A.phash
     else
-        pjacobi!(p.factorization,p.A.cscmatrix)
+        pjacobi!(p.factorization, p.A.cscmatrix)
     end
-    p
+    return p
 end
 
-allow_views(::ParallelJacobiPreconditioner)=true
-allow_views(::Type{ParallelJacobiPreconditioner})=true
+allow_views(::ParallelJacobiPreconditioner) = true
+allow_views(::Type{ParallelJacobiPreconditioner}) = true

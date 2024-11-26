@@ -1,4 +1,4 @@
-iluzerowarned=false
+iluzerowarned = false
 mutable struct ILUZeroPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::ILUZero.ILU0Precon
@@ -7,11 +7,11 @@ mutable struct ILUZeroPreconditioner <: AbstractPreconditioner
         global iluzerowarned
         if !iluzerowarned
             @warn "ILUZeroPreconditioner is deprecated. Use LinearSolve with `precs=ILUZeroPreconBuilder()` instead"
-            iluzerowarned=true
+            iluzerowarned = true
         end
         p = new()
         p.phash = 0
-        p
+        return p
     end
 end
 
@@ -29,34 +29,33 @@ function update!(p::ILUZeroPreconditioner)
     flush!(p.A)
     if p.A.phash != p.phash
         p.factorization = ILUZero.ilu0(p.A.cscmatrix)
-        p.phash=p.A.phash
+        p.phash = p.A.phash
     else
         ILUZero.ilu0!(p.factorization, p.A.cscmatrix)
     end
-    p
+    return p
 end
 
-allow_views(::ILUZeroPreconditioner)=true
-allow_views(::Type{ILUZeroPreconditioner})=true
+allow_views(::ILUZeroPreconditioner) = true
+allow_views(::Type{ILUZeroPreconditioner}) = true
 
 
-
-biluzerowarned=false
+biluzerowarned = false
 mutable struct PointBlockILUZeroPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::ILUZero.ILU0Precon
     phash::UInt64
     blocksize::Int
-    function PointBlockILUZeroPreconditioner(;blocksize=1)
+    function PointBlockILUZeroPreconditioner(; blocksize = 1)
         global biluzerowarned
         if !biluzerowarned
             @warn "PointBlockILUZeroPreconditioner is deprecated. Use LinearSolve with `precs=ILUZeroPreconBuilder(; blocksize=$(blocksize))` instead"
-            biluzerowarned=true
+            biluzerowarned = true
         end
         p = new()
         p.phash = 0
-        p.blocksize=blocksize
-        p
+        p.blocksize = blocksize
+        return p
     end
 end
 
@@ -72,27 +71,28 @@ function PointBlockILUZeroPreconditioner end
 
 function update!(p::PointBlockILUZeroPreconditioner)
     flush!(p.A)
-    Ab=pointblock(p.A.cscmatrix,p.blocksize)
+    Ab = pointblock(p.A.cscmatrix, p.blocksize)
     if p.A.phash != p.phash
-        p.factorization = ILUZero.ilu0(Ab, SVector{p.blocksize,eltype(p.A)})
-        p.phash=p.A.phash
+        p.factorization = ILUZero.ilu0(Ab, SVector{p.blocksize, eltype(p.A)})
+        p.phash = p.A.phash
     else
         ILUZero.ilu0!(p.factorization, Ab)
     end
-    p
+    return p
 end
 
 
-function LinearAlgebra.ldiv!(p::PointBlockILUZeroPreconditioner,v)
-    vv=reinterpret(SVector{p.blocksize,eltype(v)},v)
-    LinearAlgebra.ldiv!(vv,p.factorization,vv)
-    v
-end    
+function LinearAlgebra.ldiv!(p::PointBlockILUZeroPreconditioner, v)
+    vv = reinterpret(SVector{p.blocksize, eltype(v)}, v)
+    LinearAlgebra.ldiv!(vv, p.factorization, vv)
+    return v
+end
 
-function LinearAlgebra.ldiv!(u,p::PointBlockILUZeroPreconditioner,v)
-    LinearAlgebra.ldiv!(reinterpret(SVector{p.blocksize,eltype(u)},u),
-                        p.factorization,
-                        reinterpret(SVector{p.blocksize,eltype(v)},v)
-                        )
-    u
+function LinearAlgebra.ldiv!(u, p::PointBlockILUZeroPreconditioner, v)
+    LinearAlgebra.ldiv!(
+        reinterpret(SVector{p.blocksize, eltype(u)}, u),
+        p.factorization,
+        reinterpret(SVector{p.blocksize, eltype(v)}, v)
+    )
+    return u
 end

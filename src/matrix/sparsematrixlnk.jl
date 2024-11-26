@@ -1,4 +1,3 @@
-
 """
 $(TYPEDEF)
 
@@ -73,7 +72,7 @@ $(SIGNATURES)
 Constructor of empty matrix.
 """
 function SparseMatrixLNK{Tv, Ti}(m, n) where {Tv, Ti <: Integer}
-    SparseMatrixLNK{Tv, Ti}(m, n, 0, n, zeros(Ti, n), zeros(Ti, n), zeros(Tv, n))
+    return SparseMatrixLNK{Tv, Ti}(m, n, 0, n, zeros(Ti, n), zeros(Ti, n), zeros(Tv, n))
 end
 
 """
@@ -81,9 +80,11 @@ $(SIGNATURES)
     
 Constructor of empty matrix.
 """
-function SparseMatrixLNK(valuetype::Type{Tv}, indextype::Type{Ti}, m,
-                         n) where {Tv, Ti <: Integer}
-    SparseMatrixLNK{Tv, Ti}(m, n)
+function SparseMatrixLNK(
+        valuetype::Type{Tv}, indextype::Type{Ti}, m,
+        n
+    ) where {Tv, Ti <: Integer}
+    return SparseMatrixLNK{Tv, Ti}(m, n)
 end
 
 """
@@ -106,18 +107,20 @@ $(SIGNATURES)
 Constructor from SparseMatrixCSC.
 
 """
-function SparseMatrixLNK(csc::SparseArrays.SparseMatrixCSC{Tv, Ti}) where {Tv, Ti <:
-                                                                               Integer}
+function SparseMatrixLNK(csc::SparseArrays.SparseMatrixCSC{Tv, Ti}) where {
+        Tv, Ti <:
+        Integer,
+    }
     lnk = SparseMatrixLNK{Tv, Ti}(csc.m, csc.n)
-    for j = 1:(csc.n)
-        for k = csc.colptr[j]:(csc.colptr[j + 1] - 1)
+    for j in 1:(csc.n)
+        for k in csc.colptr[j]:(csc.colptr[j + 1] - 1)
             lnk[csc.rowval[k], j] = csc.nzval[k]
         end
     end
-    lnk
+    return lnk
 end
 
-function findindex(lnk::SparseMatrixLNK{Tv,Ti}, i, j) where {Tv,Ti}
+function findindex(lnk::SparseMatrixLNK{Tv, Ti}, i, j) where {Tv, Ti}
     if !((1 <= i <= lnk.m) & (1 <= j <= lnk.n))
         throw(BoundsError(lnk, (i, j)))
     end
@@ -224,7 +227,7 @@ function updateindex!(lnk::SparseMatrixLNK{Tv, Ti}, op, v, i, j) where {Tv, Ti}
         k = addentry!(lnk, i, j, k, k0)
         lnk.nzval[k] = op(zero(Tv), v)
     end
-    lnk
+    return lnk
 end
 
 """
@@ -249,7 +252,7 @@ function rawupdateindex!(lnk::SparseMatrixLNK{Tv, Ti}, op, v, i, j) where {Tv, T
         k = addentry!(lnk, i, j, k, k0)
         lnk.nzval[k] = op(zero(Tv), v)
     end
-    lnk
+    return lnk
 end
 
 """
@@ -291,10 +294,12 @@ $(SIGNATURES)
 
 Add SparseMatrixCSC matrix and [`SparseMatrixLNK`](@ref)  lnk, returning a SparseMatrixCSC
 """
-function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
-                 csc::SparseMatrixCSC)::SparseMatrixCSC where {Tv, Ti <: Integer}
-    @assert(csc.m==lnk.m)
-    @assert(csc.n==lnk.n)
+function Base.:+(
+        lnk::SparseMatrixLNK{Tv, Ti},
+        csc::SparseMatrixCSC
+    )::SparseMatrixCSC where {Tv, Ti <: Integer}
+    @assert(csc.m == lnk.m)
+    @assert(csc.n == lnk.n)
 
     # overallocate arrays in order to avoid
     # presumably slower push!
@@ -305,7 +310,7 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
 
     # Detect the maximum column length of lnk
     lnk_maxcol = 0
-    for j = 1:(csc.n)
+    for j in 1:(csc.n)
         lcol = zero(Ti)
         k = j
         while k > 0
@@ -316,7 +321,7 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
     end
 
     # pre-allocate column  data
-    col = [ColEntry{Tv, Ti}(0, zero(Tv)) for i = 1:lnk_maxcol]
+    col = [ColEntry{Tv, Ti}(0, zero(Tv)) for i in 1:lnk_maxcol]
 
     inz = 1 # counts the nonzero entries in the new matrix
 
@@ -325,7 +330,7 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
     in_lnk_col(jlnk, l_lnk_col) = (jlnk <= l_lnk_col)
 
     # loop over all columns
-    for j = 1:(csc.n)
+    for j in 1:(csc.n)
         # Copy extension entries into col and sort them
         k = j
         l_lnk_col = 0
@@ -341,7 +346,7 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
         # jointly sort lnk and csc entries  into new matrix data
         # this could be replaced in a more transparent manner by joint sorting:
         # make a joint array for csc and lnk col, sort them.
-        # Will this be faster? 
+        # Will this be faster?
 
         colptr[j] = inz
         jlnk = one(Ti) # counts the entries in col
@@ -349,15 +354,17 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
 
         while true
             if in_csc_col(jcsc, j) &&
-               (in_lnk_col(jlnk, l_lnk_col) && csc.rowval[jcsc] < col[jlnk].rowval ||
-                !in_lnk_col(jlnk, l_lnk_col))
+                    (
+                    in_lnk_col(jlnk, l_lnk_col) && csc.rowval[jcsc] < col[jlnk].rowval ||
+                        !in_lnk_col(jlnk, l_lnk_col)
+                )
                 # Insert entries from csc into new structure
                 rowval[inz] = csc.rowval[jcsc]
                 nzval[inz] = csc.nzval[jcsc]
                 jcsc += 1
                 inz += 1
             elseif in_csc_col(jcsc, j) &&
-                   (in_lnk_col(jlnk, l_lnk_col) && csc.rowval[jcsc] == col[jlnk].rowval)
+                    (in_lnk_col(jlnk, l_lnk_col) && csc.rowval[jcsc] == col[jlnk].rowval)
                 # Add up entries from csc and lnk
                 rowval[inz] = csc.rowval[jcsc]
                 nzval[inz] = csc.nzval[jcsc] + col[jlnk].nzval
@@ -379,7 +386,7 @@ function Base.:+(lnk::SparseMatrixLNK{Tv, Ti},
     # Julia 1.7 wants this correct
     resize!(rowval, inz - 1)
     resize!(nzval, inz - 1)
-    SparseMatrixCSC{Tv, Ti}(csc.m, csc.n, colptr, rowval, nzval)
+    return SparseMatrixCSC{Tv, Ti}(csc.m, csc.n, colptr, rowval, nzval)
 end
 
 Base.:+(csc::SparseMatrixCSC, lnk::SparseMatrixLNK) = lnk + csc
@@ -392,7 +399,7 @@ Constructor from SparseMatrixLNK.
 """
 function SparseArrays.SparseMatrixCSC(lnk::SparseMatrixLNK)::SparseMatrixCSC
     csc = spzeros(lnk.m, lnk.n)
-    lnk + csc
+    return lnk + csc
 end
 
 rowvals(S::SparseMatrixLNK) = getfield(S, :rowval)
@@ -400,11 +407,13 @@ getcolptr(S::SparseMatrixLNK) = getfield(S, :colptr)
 nonzeros(S::SparseMatrixLNK) = getfield(S, :nzval)
 
 function Base.copy(S::SparseMatrixLNK)
-    SparseMatrixLNK(size(S, 1),
-                    size(S, 2),
-                    S.nnz,
-                    S.nentries,
-                    copy(getcolptr(S)),
-                    copy(rowvals(S)),
-                    copy(nonzeros(S)))
+    return SparseMatrixLNK(
+        size(S, 1),
+        size(S, 2),
+        S.nnz,
+        S.nentries,
+        copy(getcolptr(S)),
+        copy(rowvals(S)),
+        copy(nonzeros(S))
+    )
 end

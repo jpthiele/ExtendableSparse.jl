@@ -5,7 +5,7 @@ mutable struct ILUAMPreconditioner <: AbstractPreconditioner
     function ILUAMPreconditioner()
         p = new()
         p.phash = 0
-        p
+        return p
     end
 end
 
@@ -23,12 +23,12 @@ function update!(p::ILUAMPreconditioner)
     flush!(p.A)
     if p.A.phash != p.phash
         p.factorization = iluAM(p.A.cscmatrix)
-        p.phash=p.A.phash
+        p.phash = p.A.phash
     else
         iluam!(p.factorization, p.A.cscmatrix)
     end
-    p
+    return p
 end
 
-allow_views(::ILUAMPreconditioner)=true
-allow_views(::Type{ILUAMPreconditioner})=true
+allow_views(::ILUAMPreconditioner) = true
+allow_views(::Type{ILUAMPreconditioner}) = true

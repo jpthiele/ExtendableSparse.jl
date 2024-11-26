@@ -8,26 +8,28 @@ using MultiFloats
 using ForwardDiff
 
 const Dual64 = ForwardDiff.Dual{Float64, Float64, 1}
-function Random.rand(rng::AbstractRNG,
-                     ::Random.SamplerType{ForwardDiff.Dual{T, V, N}}) where {T, V, N}
-    ForwardDiff.Dual{T, V, N}(rand(rng, T))
+function Random.rand(
+        rng::AbstractRNG,
+        ::Random.SamplerType{ForwardDiff.Dual{T, V, N}}
+    ) where {T, V, N}
+    return ForwardDiff.Dual{T, V, N}(rand(rng, T))
 end
 
 function test_construct(T)
     m = ExtendableSparseMatrix(T, 10, 10)
-    eltype(m) == T
+    return eltype(m) == T
 end
 
 function test_sprand(T)
     m = ExtendableSparseMatrix(sprand(T, 10, 10, 0.1))
-    eltype(m) == T
+    return eltype(m) == T
 end
 
 function test_transient_construction(; m = 10, n = 10, d = 0.1)
     csc = sprand(m, n, d)
     lnk = SparseMatrixLNK(csc)
     csc2 = SparseMatrixCSC(lnk)
-    csc2 == csc
+    return csc2 == csc
 end
 
 function test()
@@ -43,7 +45,7 @@ function test()
 
     D = Diagonal(rand(10))
     ED = ExtendableSparseMatrix(D)
-    @test all([D[i, i] == ED[i, i] for i = 1:10])
+    @test all([D[i, i] == ED[i, i] for i in 1:10])
 
     I = rand(1:10, 100)
     J = rand(1:10, 100)
@@ -56,12 +58,13 @@ function test()
     @test test_sprand(Float64x2)
     @test test_sprand(Dual64)
 
-    for irun = 1:10
+    for irun in 1:10
         m = rand((1:1000))
         n = rand((1:1000))
         d = 0.3 * rand()
         @test test_transient_construction(m = m, n = n, d = d)
     end
+    return
 end
 test()
 end

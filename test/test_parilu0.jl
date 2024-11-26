@@ -19,7 +19,7 @@ function test(n)
     @show sol_par
     @show hist_ser.iters
     @show hist_par.iters
-    sol_ser ≈ sol_par && hist_ser.iters == hist_par.iters
+    return sol_ser ≈ sol_par && hist_ser.iters == hist_par.iters
 end
 
 @test test(10)

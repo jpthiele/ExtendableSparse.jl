@@ -5,9 +5,9 @@ Return callable object constructing a formal left preconditioner from a sparse L
 as the `precs` parameter for a  [`BlockPreconBuilder`](@ref)  or  iterative methods wrapped by LinearSolve.jl.
 """
 Base.@kwdef struct LinearSolvePreconBuilder
-    method=UMFPACKFactorization()
+    method = UMFPACKFactorization()
 end
-(::LinearSolvePreconBuilder)(A,p)= error("import LinearSolve in order to use LinearSolvePreconBuilder")
+(::LinearSolvePreconBuilder)(A, p) = error("import LinearSolve in order to use LinearSolvePreconBuilder")
 
 
 """
@@ -17,7 +17,7 @@ Return callable object constructing a left Jacobi preconditioner
 to be passed as the `precs` parameter to iterative methods wrapped by LinearSolve.jl.
 """
 struct JacobiPreconBuilder end
-(::JacobiPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(JacobiPreconditioner(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A),nonzeros(A))),LinearAlgebra.I)
+(::JacobiPreconBuilder)(A::AbstractSparseMatrixCSC, p) = (JacobiPreconditioner(SparseMatrixCSC(size(A)..., getcolptr(A), rowvals(A), nonzeros(A))), LinearAlgebra.I)
 
 
 """
@@ -30,25 +30,27 @@ Base.@kwdef mutable struct ILUZeroPreconBuilder
     blocksize::Int = 1
 end
 
-struct ILUBlockPrecon{N,NN,Tv,Ti}
+struct ILUBlockPrecon{N, NN, Tv, Ti}
     ilu0::ILUZero.ILU0Precon{SMatrix{N, N, Tv, NN}, Ti, SVector{N, Tv}}
 end
 
-function LinearAlgebra.ldiv!(Y::Vector{Tv},
-                             A::ILUBlockPrecon{N,NN,Tv,Ti},
-                             B::Vector{Tv}) where {N,NN,Tv,Ti}
-    BY=reinterpret(SVector{N,Tv},Y)
-    BB=reinterpret(SVector{N,Tv},B)
-    ldiv!(BY,A.ilu0,BB)
-    Y
+function LinearAlgebra.ldiv!(
+        Y::Vector{Tv},
+        A::ILUBlockPrecon{N, NN, Tv, Ti},
+        B::Vector{Tv}
+    ) where {N, NN, Tv, Ti}
+    BY = reinterpret(SVector{N, Tv}, Y)
+    BB = reinterpret(SVector{N, Tv}, B)
+    ldiv!(BY, A.ilu0, BB)
+    return Y
 end
 
-function (b::ILUZeroPreconBuilder)(A0,p)
-    A=SparseMatrixCSC(size(A0)..., getcolptr(A0), rowvals(A0),nonzeros(A0))
-    if b.blocksize==1
-        (ILUZero.ilu0(A),LinearAlgebra.I)
+function (b::ILUZeroPreconBuilder)(A0, p)
+    A = SparseMatrixCSC(size(A0)..., getcolptr(A0), rowvals(A0), nonzeros(A0))
+    return if b.blocksize == 1
+        (ILUZero.ilu0(A), LinearAlgebra.I)
     else
-        (ILUBlockPrecon(ILUZero.ilu0(pointblock(A,b.blocksize),SVector{b.blocksize,eltype(A)})),LinearAlgebra.I)
+        (ILUBlockPrecon(ILUZero.ilu0(pointblock(A, b.blocksize), SVector{b.blocksize, eltype(A)})), LinearAlgebra.I)
     end
 end
 
@@ -60,10 +62,9 @@ Return callable object constructing a left ILUT preconditioner
 using [IncompleteLU.jl](https://github.com/haampie/IncompleteLU.jl)
 """
 Base.@kwdef struct ILUTPreconBuilder
-    droptol::Float64=0.1
+    droptol::Float64 = 0.1
 end
-(::ILUTPreconBuilder)(A,p)= error("import IncompleteLU.jl in order to use ILUTBuilder")
-
+(::ILUTPreconBuilder)(A, p) = error("import IncompleteLU.jl in order to use ILUTBuilder")
 
 
 """
@@ -79,11 +80,11 @@ struct SmoothedAggregationPreconBuilder{Tk}
     kwargs::Tk
 end
 
-function SmoothedAggregationPreconBuilder(;blocksize=1, kwargs...)
-    SmoothedAggregationPreconBuilder(blocksize,kwargs)
+function SmoothedAggregationPreconBuilder(; blocksize = 1, kwargs...)
+    return SmoothedAggregationPreconBuilder(blocksize, kwargs)
 end
 
-(::SmoothedAggregationPreconBuilder)(A,p)= error("import AlgebraicMultigrid in order to use SmoothedAggregationPreconBuilder")
+(::SmoothedAggregationPreconBuilder)(A, p) = error("import AlgebraicMultigrid in order to use SmoothedAggregationPreconBuilder")
 
 """
    RugeStubenPreconBuilder(;blocksize=1, kwargs...)
@@ -98,8 +99,8 @@ struct RugeStubenPreconBuilder{Tk}
     kwargs::Tk
 end
 
-function RugeStubenPreconBuilder(;blocksize=1, kwargs...)
-    SmoothedAggregationPreconBuilder(blocksize,kwargs)
+function RugeStubenPreconBuilder(; blocksize = 1, kwargs...)
+    return SmoothedAggregationPreconBuilder(blocksize, kwargs)
 end
 
-(::RugeStubenPreconBuilder)(A,p)= error("import AlgebraicMultigrid in order to use RugeStubenAMGBuilder")
+(::RugeStubenPreconBuilder)(A, p) = error("import AlgebraicMultigrid in order to use RugeStubenAMGBuilder")

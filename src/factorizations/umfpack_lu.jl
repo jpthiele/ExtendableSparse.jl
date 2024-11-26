@@ -4,7 +4,7 @@ mutable struct LUFactorization <: AbstractLUFactorization
     phash::UInt64
 end
 
-LUFactorization() = LUFactorization(nothing,nothing,0)
+LUFactorization() = LUFactorization(nothing, nothing, 0)
 """
 ```
 LUFactorization()
@@ -23,5 +23,5 @@ function update!(lufact::LUFactorization)
     else
         lufact.factorization = lu!(lufact.factorization, lufact.A.cscmatrix)
     end
-    lufact
+    return lufact
 end

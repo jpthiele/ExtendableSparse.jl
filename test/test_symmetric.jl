@@ -12,7 +12,7 @@ function test_symm(n, uplo)
     SA = Symmetric(A, uplo)
     Scsc = Symmetric(A.cscmatrix, uplo)
 
-    if ExtendableSparse.USE_GPL_LIBS
+    return if ExtendableSparse.USE_GPL_LIBS
         #requires SuiteSparse which is not available on non-GPL builds
         SA \ b ≈ Scsc \ b
     else
@@ -29,7 +29,7 @@ function test_hermitian(n, uplo)
     b = rand(n)
     HA = Hermitian(A, uplo)
     Hcsc = Hermitian(A.cscmatrix, uplo)
-    if ExtendableSparse.USE_GPL_LIBS
+    return if ExtendableSparse.USE_GPL_LIBS
         #requires SuiteSparse which is not available on non-GPL builds
         HA \ b ≈ Hcsc \ b
     else

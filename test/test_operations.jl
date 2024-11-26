@@ -9,7 +9,7 @@ function test_addition(; m = 10, n = 10, d = 0.1)
     csc = sprand(m, n, d)
     lnk = SparseMatrixLNK(csc)
     csc2 = csc + lnk
-    csc2 == 2 * csc
+    return csc2 == 2 * csc
 end
 
 function test_invert(n)
@@ -18,11 +18,11 @@ function test_invert(n)
     b = rand(n)
     x = A \ b
     Ax = A * x
-    b ≈ Ax
+    return b ≈ Ax
 end
 
 function test()
-    for irun = 1:10
+    for irun in 1:10
         m = rand((1:1000))
         n = rand((1:1000))
         d = 0.3 * rand()
@@ -52,7 +52,7 @@ function test()
 
     D = Diagonal(rand(10))
     @test isa(D * extA, ExtendableSparseMatrix)
-    @test isa(extA * D, ExtendableSparseMatrix)
+    return @test isa(extA * D, ExtendableSparseMatrix)
 end
 
 test()

@@ -15,51 +15,54 @@ using Test
 
 include("femtools.jl")
 
-function test_correctness_build_seq(N, Tm::Type{<:AbstractSparseMatrix}; dim=3)
+function test_correctness_build_seq(N, Tm::Type{<:AbstractSparseMatrix}; dim = 3)
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
-    A = Tm{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
+    A = Tm{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     testassemble!(A, grid)
-    @test sparse(A0) ≈ sparse(A)
+    return @test sparse(A0) ≈ sparse(A)
 end
 
-function speedup_build_seq(N, Tm::Type{<:AbstractSparseMatrix}; dim=3)
+function speedup_build_seq(N, Tm::Type{<:AbstractSparseMatrix}; dim = 3)
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
-    A = Tm{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
+    A = Tm{Float64, Int}(nnodes, nnodes)
     tbase = @belapsed testassemble!($A0, $grid) seconds = 1 setup = (reset!($A0))
     tx = @belapsed testassemble!($A, $grid) seconds = 1 setup = (reset!($A))
-    tbase / tx
+    return tbase / tx
 end
 
-function test_correctness_update(N,
-                                 Tm::Type{<:AbstractSparseMatrix};
-                                 Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                                 allnp=[10, 15, 20],
-                                 dim=3)
+function test_correctness_update(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
-    A = Tm{Float64,Int}(nnodes, nnodes, 1)
+    A = Tm{Float64, Int}(nnodes, nnodes, 1)
 
     # Assembele without partitioning
     # this gives the "base truth" to compare with
     testassemble_parallel!(A, grid)
 
-    # Save the nonzeros 
+    # Save the nonzeros
     nz = sort(copy(nonzeros(A)))
     for np in allnp
         # Reset the nonzeros, keeping the structure intact
         nonzeros(A) .= 0
         # Parallel assembly with np threads
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         reset!(A, np)
         @show num_partitions_per_color(pgrid)
         testassemble_parallel!(A, pgrid)
         @test sort(nonzeros(A)) ≈ nz
     end
+    return
 end
 
 """
@@ -68,94 +71,106 @@ end
 Test correctness of parallel assembly on NxN grid  during 
 build phase, assuming that no structure has been assembled.
 """
-function test_correctness_build(N,
-                                Tm::Type{<:AbstractSparseMatrix};
-                                Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                                allnp=[10, 15, 20],
-                                dim=3)
+function test_correctness_build(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
     # Get the "ground truth"
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     nz = sort(copy(nonzeros(A0)))
     for np in allnp
         # Make a new matrix and assemble parallel.
         # this should result in the same nonzeros
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         A = Tm(nnodes, nnodes, num_partitions(pgrid))
         @show num_partitions_per_color(pgrid)
         @test check_partitioning(pgrid)
         testassemble_parallel!(A, pgrid)
         @test sort(nonzeros(A)) ≈ nz
     end
+    return
 end
 
-function test_correctness_mul(N,
-                              Tm::Type{<:AbstractSparseMatrix};
-                              Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                              allnp=[10, 15, 20],
-                              dim=3)
+function test_correctness_mul(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
     # Get the "ground truth"
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     b = rand(nnodes)
     A0b = A0 * b
     for np in allnp
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         @test check_partitioning(pgrid)
         A = Tm(nnodes, nnodes, num_partitions(pgrid))
-        partitioning!(A, pgrid[PColorPartitions],
-                                                    pgrid[PartitionNodes])
+        partitioning!(
+            A, pgrid[PColorPartitions],
+            pgrid[PartitionNodes]
+        )
         testassemble_parallel!(A, pgrid)
         invp = invperm(pgrid[NodePermutation])
         diff = norm(A0b[invp] - A * b[invp], Inf)
         @show diff
         @test diff < sqrt(eps())
     end
+    return
 end
 
-function speedup_update(N,
-                        Tm::Type{<:AbstractSparseMatrix};
-                        Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                        allnp=[10, 15, 20],
-                        dim=3)
+function speedup_update(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
     # Get the "ground truth"
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     nz = copy(nonzeros(A0)) |> sort
     # Get the base timing
-    # During setup, set matrix entries to zero while keeping  the structure 
+    # During setup, set matrix entries to zero while keeping  the structure
     t0 = @belapsed testassemble!($A0, $grid) seconds = 1 setup = (nonzeros($A0) .= 0)
     result = []
     A = Tm(nnodes, nnodes, 1)
     for np in allnp
         # Get the parallel timing
         # During setup, set matrix entries to zero while keeping  the structure
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         @show num_partitions_per_color(pgrid)
         reset!(A, num_partitions(pgrid))
         testassemble_parallel!(A, pgrid)
         t = @belapsed testassemble_parallel!($A, $pgrid) seconds = 1 setup = (nonzeros($A) .= 0)
         @assert sort(nonzeros(A)) ≈ nz
-        push!(result, (np, round(t0 / t; digits=2)))
+        push!(result, (np, round(t0 / t; digits = 2)))
     end
-    result
+    return result
 end
 
-function speedup_build(N,
-                       Tm::Type{<:AbstractSparseMatrix};
-                       Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                       allnp=[10, 15, 20],
-                       dim=3)
+function speedup_build(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
     # Get the "ground truth"
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     nz = nonzeros(A0)
     reset!(A0)
@@ -172,26 +187,32 @@ function speedup_build(N,
     for np in allnp
         # Get the parallel timing
         # During setup, reset matrix to empty state.
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         reset!(A, num_partitions(pgrid))
         @show num_partitions_per_color(pgrid)
-        t = @belapsed testassemble_parallel!($A, $pgrid) seconds = 1 setup = (reset!($A,
-                                                                                     num_partitions($pgrid)))
+        t = @belapsed testassemble_parallel!($A, $pgrid) seconds = 1 setup = (
+            reset!(
+                $A,
+                num_partitions($pgrid)
+            )
+        )
         @assert sort(nonzeros(A)) ≈ nz
-        push!(result, (np, round(t0 / t; digits=2)))
+        push!(result, (np, round(t0 / t; digits = 2)))
     end
-    result
+    return result
 end
 
-function speedup_mul(N,
-                     Tm::Type{<:AbstractSparseMatrix};
-                     Tp::Type{<:AbstractPartitioningAlgorithm}=PlainMetisPartitioning,
-                     allnp=[10, 15, 20],
-                     dim=3)
+function speedup_mul(
+        N,
+        Tm::Type{<:AbstractSparseMatrix};
+        Tp::Type{<:AbstractPartitioningAlgorithm} = PlainMetisPartitioning,
+        allnp = [10, 15, 20],
+        dim = 3
+    )
     grid = testgrid(N; dim)
     nnodes = num_nodes(grid)
     # Get the "ground truth"
-    A0 = ExtendableSparseMatrix{Float64,Int}(nnodes, nnodes)
+    A0 = ExtendableSparseMatrix{Float64, Int}(nnodes, nnodes)
     testassemble!(A0, grid)
     b = rand(nnodes)
     t0 = @belapsed $A0 * $b seconds = 1
@@ -199,19 +220,21 @@ function speedup_mul(N,
     result = []
     A = Tm(nnodes, nnodes, 1)
     for np in allnp
-        pgrid = partition(grid, Tp(; npart=np), nodes=true, keep_nodepermutation=true)
+        pgrid = partition(grid, Tp(; npart = np), nodes = true, keep_nodepermutation = true)
         @show num_partitions_per_color(pgrid)
         reset!(A, num_partitions(pgrid))
         testassemble_parallel!(A, pgrid)
         flush!(A)
-        partitioning!(A, pgrid[PColorPartitions],
-                      pgrid[PartitionNodes])
+        partitioning!(
+            A, pgrid[PColorPartitions],
+            pgrid[PartitionNodes]
+        )
         t = @belapsed $A * $b seconds = 1
         invp = invperm(pgrid[NodePermutation])
         @assert A0b[invp] ≈ A * b[invp]
-        push!(result, (np, round(t0 / t; digits=2)))
+        push!(result, (np, round(t0 / t; digits = 2)))
     end
-    result
+    return result
 end
 
 #=

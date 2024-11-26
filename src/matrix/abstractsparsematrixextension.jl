@@ -14,6 +14,6 @@ Subtypes T_ext must implement:
 task or partition id
 
 """
-abstract type AbstractSparseMatrixExtension{Tv, Ti} <: AbstractSparseMatrix{Tv,Ti} end
+abstract type AbstractSparseMatrixExtension{Tv, Ti} <: AbstractSparseMatrix{Tv, Ti} end
 
-Base.:+(ext::AbstractSparseMatrixExtension, csx) = sum([ext],csx) 
+Base.:+(ext::AbstractSparseMatrixExtension, csx) = sum([ext], csx)
