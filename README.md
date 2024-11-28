@@ -4,6 +4,7 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://WIAS-PDELib.github.io/ExtendableSparse.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://WIAS-PDELib.github.io/ExtendableSparse.jl/dev)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3530554.svg)](https://doi.org/10.5281/zenodo.3530554)
+[![code style: runic](https://img.shields.io/badge/code_style-%E1%9A%B1%E1%9A%A2%E1%9A%BE%E1%9B%81%E1%9A%B2-black)](https://github.com/fredrikekre/Runic.jl)
 
 Sparse matrix class with efficient successive insertion of entries and entry update, supporting general number types.
 
