@@ -21,7 +21,7 @@ function test(T)
     rawupdateindex!(A, +, 0.1, 2, 3)
     @test nnz(A) == 3
     dropzeros!(A)
-    @test nnz(A) == 3
+    return @test nnz(A) == 3
 end
 
 test(Float64)

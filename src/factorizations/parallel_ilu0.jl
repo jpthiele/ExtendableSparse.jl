@@ -1,5 +1,5 @@
-mutable struct _ParallelILU0Preconditioner{Tv,Ti}
-    A::SparseMatrixCSC{Tv,Ti}
+mutable struct _ParallelILU0Preconditioner{Tv, Ti}
+    A::SparseMatrixCSC{Tv, Ti}
     xdiag::Vector{Tv}
     idiag::Vector{Ti}
     coloring::Vector{Vector{Ti}}
@@ -7,22 +7,22 @@ mutable struct _ParallelILU0Preconditioner{Tv,Ti}
     coloring_index_reverse::Vector{Vector{Ti}}
 end
 
-function pilu0(A0::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti}
+function pilu0(A0::SparseMatrixCSC{Tv, Ti}) where {Tv, Ti}
     coloring = graphcol(A0)
     coloring_index, coloring_index_reverse = coloringindex(coloring)
     A = ExtendableSparseMatrix(reordermatrix(A0, coloring)).cscmatrix
 
     colptr = A.colptr
     rowval = A.rowval
-    nzval =  A.nzval
+    nzval = A.nzval
     n = A.n
-    xdiag=Vector{Tv}(undef,n)
-    idiag=Vector{Ti}(undef,n)
+    xdiag = Vector{Tv}(undef, n)
+    idiag = Vector{Ti}(undef, n)
 
     # Find main diagonal index and
     # copy main diagonal values
-    @inbounds for j = 1:n
-        @inbounds for k = colptr[j]:(colptr[j + 1] - 1)
+    @inbounds for j in 1:n
+        @inbounds for k in colptr[j]:(colptr[j + 1] - 1)
             i = rowval[k]
             if i == j
                 idiag[j] = k
@@ -30,12 +30,12 @@ function pilu0(A0::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti}
             end
         end
     end
-    
-    @inbounds for j = 1:n
+
+    @inbounds for j in 1:n
         xdiag[j] = one(Tv) / nzval[idiag[j]]
-        @inbounds for k = (idiag[j] + 1):(colptr[j + 1] - 1)
+        @inbounds for k in (idiag[j] + 1):(colptr[j + 1] - 1)
             i = rowval[k]
-            for l = colptr[i]:(colptr[i + 1] - 1)
+            for l in colptr[i]:(colptr[i + 1] - 1)
                 if rowval[l] == j
                     xdiag[i] -= nzval[l] * xdiag[j] * nzval[k]
                     break
@@ -43,12 +43,14 @@ function pilu0(A0::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti}
             end
         end
     end
-    _ParallelILU0Preconditioner(A,xdiag,idiag, coloring, coloring_index,coloring_index_reverse)
+    return _ParallelILU0Preconditioner(A, xdiag, idiag, coloring, coloring_index, coloring_index_reverse)
 end
 
-function LinearAlgebra.ldiv!(u::AbstractVector,
-                             precon::_ParallelILU0Preconditioner{Tv,Ti},
-                             v::AbstractVector) where {Tv,Ti}
+function LinearAlgebra.ldiv!(
+        u::AbstractVector,
+        precon::_ParallelILU0Preconditioner{Tv, Ti},
+        v::AbstractVector
+    ) where {Tv, Ti}
     A = precon.A
     colptr = A.colptr
     rowval = A.rowval
@@ -60,14 +62,14 @@ function LinearAlgebra.ldiv!(u::AbstractVector,
     coloring = precon.coloring
     coloring_index = precon.coloring_index
     coloring_index_reverse = precon.coloring_index_reverse
-    
-    Threads.@threads for j = 1:n
+
+    Threads.@threads for j in 1:n
         u[j] = xdiag[j] * v[j]
     end
 
     for indset in coloring_index_reverse
         Threads.@threads for j in indset
-            for k = (idiag[j] + 1):(colptr[j + 1] - 1)
+            for k in (idiag[j] + 1):(colptr[j + 1] - 1)
                 i = rowval[k]
                 u[i] -= xdiag[i] * nzval[k] * u[j]
             end
@@ -75,36 +77,39 @@ function LinearAlgebra.ldiv!(u::AbstractVector,
     end
     for indset in coloring_index
         Threads.@threads for j in indset
-            for k = colptr[j]:(idiag[j] - 1)
+            for k in colptr[j]:(idiag[j] - 1)
                 i = rowval[k]
                 u[i] -= xdiag[i] * nzval[k] * u[j]
             end
         end
     end
+    return
 end
 
-function LinearAlgebra.ldiv!(precon::_ParallelILU0Preconditioner{Tv,Ti},
-                             v::AbstractVector) where {Tv,Ti}
-    ldiv!(v, precon, v)
+function LinearAlgebra.ldiv!(
+        precon::_ParallelILU0Preconditioner{Tv, Ti},
+        v::AbstractVector
+    ) where {Tv, Ti}
+    return ldiv!(v, precon, v)
 end
 
 # Returns an independent set of the graph of a matrix
 # Reference: https://research.nvidia.com/sites/default/files/pubs/2015-05_Parallel-Graph-Coloring/nvr-2015-001.pdf
-function indset(A::SparseMatrixCSC{Tv,Ti}, W::StridedVector) where {Tv, Ti}
+function indset(A::SparseMatrixCSC{Tv, Ti}, W::StridedVector) where {Tv, Ti}
     # Random numbers for all vertices
     lenW = length(W)
     # r = sample(1:lenW, lenW, replace = false)
     r = rand(lenW)
-    @inbounds for i = 1:lenW
+    @inbounds for i in 1:lenW
         if W[i] == 0
             r[i] = 0
         end
     end
     # Empty independent set
     S = zeros(Int, lenW)
-    # Get independent set by comparing random number of vertex with the random 
+    # Get independent set by comparing random number of vertex with the random
     # numbers of all neighbor vertices
-    @inbounds Threads.@threads for i = 1:lenW
+    @inbounds Threads.@threads for i in 1:lenW
         if W[i] != 0
             j = A.rowval[A.colptr[i]:(A.colptr[i + 1] - 1)]
             if all(x -> x == 1, r[i] .>= r[j])
@@ -118,7 +123,7 @@ end
 
 # Returns coloring of the graph of a matrix
 # Reference: https://research.nvidia.com/sites/default/files/pubs/2015-05_Parallel-Graph-Coloring/nvr-2015-001.pdf
-function graphcol(A::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti}
+function graphcol(A::SparseMatrixCSC{Tv, Ti}) where {Tv, Ti}
     # Empty list for coloring
     C = Vector{Ti}[]
     # Array of vertices
@@ -138,37 +143,41 @@ function graphcol(A::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti}
 end
 
 # Reorders a sparse matrix with provided coloring
-function reordermatrix(A::SparseMatrixCSC{Tv, Ti},
-                       coloring) where {Tv, Ti}
+function reordermatrix(
+        A::SparseMatrixCSC{Tv, Ti},
+        coloring
+    ) where {Tv, Ti}
     c = collect(Iterators.flatten(coloring))
     return A[c, :][:, c]
 end
 
 # Reorders a linear system with provided coloring
-function reorderlinsys(A::SparseMatrixCSC{Tv, Ti},
-                       b::Vector{Tv} ,
-                       coloring) where {Tv, Ti}
+function reorderlinsys(
+        A::SparseMatrixCSC{Tv, Ti},
+        b::Vector{Tv},
+        coloring
+    ) where {Tv, Ti}
     c = collect(Iterators.flatten(coloring))
     return A[c, :][:, c], b[c]
 end
 
-# Returns an array with the same structure of the input coloring and ordered 
-# entries 1:length(coloring) and an array with the structure of 
-# reverse(coloring) and ordered entries length(coloring):-1:1 
+# Returns an array with the same structure of the input coloring and ordered
+# entries 1:length(coloring) and an array with the structure of
+# reverse(coloring) and ordered entries length(coloring):-1:1
 function coloringindex(coloring)
     # First array
     c = deepcopy(coloring)
     cnt = 1
-    @inbounds for i = 1:length(c)
-        @inbounds for j = 1:length(c[i])
+    @inbounds for i in 1:length(c)
+        @inbounds for j in 1:length(c[i])
             c[i][j] = cnt
             cnt += 1
         end
     end
     # Second array
     cc = deepcopy(reverse(coloring))
-    @inbounds for i = 1:length(cc)
-        @inbounds for j = 1:length(cc[i])
+    @inbounds for i in 1:length(cc)
+        @inbounds for j in 1:length(cc[i])
             cnt -= 1
             cc[i][j] = cnt
         end
@@ -178,18 +187,16 @@ function coloringindex(coloring)
 end
 
 
-
-
 #################################################################
 mutable struct ParallelILU0Preconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     phash::UInt64
-    factorization:: _ParallelILU0Preconditioner
+    factorization::_ParallelILU0Preconditioner
 
     function ParallelILU0Preconditioner()
         p = new()
         p.phash = 0
-        p
+        return p
     end
 end
 
@@ -206,12 +213,12 @@ function ParallelILU0Preconditioner end
 
 function update!(p::ParallelILU0Preconditioner)
     flush!(p.A)
-    Tv=eltype(p.A)
-    if p.A.phash!=p.phash
-        p.factorization=pilu0(p.A.cscmatrix)
-        p.phash=p.A.phash
+    Tv = eltype(p.A)
+    if p.A.phash != p.phash
+        p.factorization = pilu0(p.A.cscmatrix)
+        p.phash = p.A.phash
     else
-        pilu0!(p.factorization,p.A.cscmatrix)
+        pilu0!(p.factorization, p.A.cscmatrix)
     end
-    p
+    return p
 end

@@ -5,7 +5,7 @@ mutable struct CholeskyFactorization <: AbstractLUFactorization
     A64::Any
 end
 
-cholwarned=false
+cholwarned = false
 """
 CholeskyFactorization(;valuetype=Float64, indextype=Int64)
 CholeskyFactorization(matrix)
@@ -16,9 +16,9 @@ function CholeskyFactorization()
     global cholwarned
     if !cholwarned
         @warn "ExtendableSparse.CholeskyFactorization is deprecated. Use LinearSolve.CholeskyFactorization` instead"
-        cholwarned=true
+        cholwarned = true
     end
-    CholeskyFactorization(nothing, nothing, 0, nothing)
+    return CholeskyFactorization(nothing, nothing, 0, nothing)
 end
 
 function update!(cholfact::CholeskyFactorization)
@@ -32,7 +32,7 @@ function update!(cholfact::CholeskyFactorization)
         cholfact.A64.data.nzval .= A.cscmatrix.nzval
         cholfact.fact = cholesky!(cholfact.fact, cholfact.A64)
     end
-    cholfact
+    return cholfact
 end
 
 LinearAlgebra.ldiv!(fact::CholeskyFactorization, v) = fact.fact \ v

@@ -8,8 +8,8 @@ using LinearAlgebra: I
 import ExtendableSparse: SmoothedAggregationPreconBuilder
 import ExtendableSparse: RugeStubenPreconBuilder
 
-(b::SmoothedAggregationPreconBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(smoothed_aggregation(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
-(b::RugeStubenPreconBuilder)(A::AbstractSparseMatrixCSC,p)= (aspreconditioner(ruge_stuben(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)),I)
+(b::SmoothedAggregationPreconBuilder)(A::AbstractSparseMatrixCSC, p) = (aspreconditioner(smoothed_aggregation(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)), I)
+(b::RugeStubenPreconBuilder)(A::AbstractSparseMatrixCSC, p) = (aspreconditioner(ruge_stuben(SparseMatrixCSC(A), Val{b.blocksize}; b.kwargs...)), I)
 
 
 ####
@@ -19,23 +19,23 @@ import ExtendableSparse: RugeStubenPreconBuilder
 import ExtendableSparse: @makefrommatrix, AbstractPreconditioner, update!
 
 ######################################################################################
-rswarned=false
+rswarned = false
 
 mutable struct RS_AMGPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::AlgebraicMultigrid.Preconditioner
     kwargs
     blocksize
-    function ExtendableSparse.RS_AMGPreconditioner(blocksize=1; kwargs...)
+    function ExtendableSparse.RS_AMGPreconditioner(blocksize = 1; kwargs...)
         global rswarned
         if !rswarned
             @warn "RS_AMGPreconditioner is deprecated. Use LinearSolve with `precs=RugeStubenPreconBuilder()` instead"
-            rswarned=true
+            rswarned = true
         end
         precon = new()
         precon.kwargs = kwargs
-        precon.blocksize=blocksize
-        precon
+        precon.blocksize = blocksize
+        return precon
     end
 end
 
@@ -46,30 +46,30 @@ end
 
 function update!(precon::RS_AMGPreconditioner)
     @inbounds flush!(precon.A)
-    precon.factorization =  AlgebraicMultigrid.aspreconditioner(AlgebraicMultigrid.ruge_stuben(precon.A.cscmatrix,Val{precon.blocksize}; precon.kwargs...))
+    return precon.factorization = AlgebraicMultigrid.aspreconditioner(AlgebraicMultigrid.ruge_stuben(precon.A.cscmatrix, Val{precon.blocksize}; precon.kwargs...))
 end
 
-allow_views(::RS_AMGPreconditioner)=true
-allow_views(::Type{RS_AMGPreconditioner})=true
+allow_views(::RS_AMGPreconditioner) = true
+allow_views(::Type{RS_AMGPreconditioner}) = true
 
 
 ######################################################################################
-sawarned=false
+sawarned = false
 mutable struct SA_AMGPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::AlgebraicMultigrid.Preconditioner
     kwargs
     blocksize
-    function ExtendableSparse.SA_AMGPreconditioner(blocksize=1; kwargs...)
+    function ExtendableSparse.SA_AMGPreconditioner(blocksize = 1; kwargs...)
         global sawarned
         if !sawarned
             @warn "SA_AMGPreconditioner is deprecated. Use LinearSolve with `precs=SmoothedAggregationPreconBuilder()` instead"
-            sawarned=true
+            sawarned = true
         end
         precon = new()
         precon.kwargs = kwargs
-        precon.blocksize=blocksize
-        precon
+        precon.blocksize = blocksize
+        return precon
     end
 end
 
@@ -80,11 +80,11 @@ end
 
 function update!(precon::SA_AMGPreconditioner)
     @inbounds flush!(precon.A)
-    precon.factorization =  AlgebraicMultigrid.aspreconditioner(AlgebraicMultigrid.smoothed_aggregation(precon.A.cscmatrix, Val{precon.blocksize}; precon.kwargs...))
+    return precon.factorization = AlgebraicMultigrid.aspreconditioner(AlgebraicMultigrid.smoothed_aggregation(precon.A.cscmatrix, Val{precon.blocksize}; precon.kwargs...))
 end
 
-allow_views(::SA_AMGPreconditioner)=true
-allow_views(::Type{SA_AMGPreconditioner})=true
+allow_views(::SA_AMGPreconditioner) = true
+allow_views(::Type{SA_AMGPreconditioner}) = true
 
 ######################################################################################
 # deprecated

@@ -7,9 +7,11 @@ using MultiFloats
 using ForwardDiff
 
 const Dual64 = ForwardDiff.Dual{Float64, Float64, 1}
-function Random.rand(rng::AbstractRNG,
-                     ::Random.SamplerType{ForwardDiff.Dual{T, V, N}}) where {T, V, N}
-    ForwardDiff.Dual{T, V, N}(rand(rng, T))
+function Random.rand(
+        rng::AbstractRNG,
+        ::Random.SamplerType{ForwardDiff.Dual{T, V, N}}
+    ) where {T, V, N}
+    return ForwardDiff.Dual{T, V, N}(rand(rng, T))
 end
 
 function test(T)
@@ -22,11 +24,11 @@ function test(T)
 
     if !(t1 / t0 < 10 && t0 / t2 < 10)
         @warn """timing test failed.
-If this occurs just once or twice, it is probably due to CPU noise.
-So we nevertheless count this as passing.
-"""
+        If this occurs just once or twice, it is probably due to CPU noise.
+        So we nevertheless count this as passing.
+        """
     end
-    true    
+    return true
 end
 test(Float64)
 test(Float64x2)

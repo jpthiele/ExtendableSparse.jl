@@ -5,7 +5,7 @@ mutable struct PILUAMPreconditioner <: AbstractPreconditioner
     function PILUAMPreconditioner()
         p = new()
         p.phash = 0
-        p
+        return p
     end
 end
 
@@ -24,12 +24,12 @@ function update!(p::PILUAMPreconditioner)
     flush!(p.A)
     if p.A.phash != p.phash
         p.factorization = piluAM(p.A)
-        p.phash=p.A.phash
+        p.phash = p.A.phash
     else
         piluAM!(p.factorization, p.A)
     end
-    p
+    return p
 end
 
-allow_views(::PILUAMPreconditioner)=true
-allow_views(::Type{PILUAMPreconditioner})=true
+allow_views(::PILUAMPreconditioner) = true
+allow_views(::Type{PILUAMPreconditioner}) = true

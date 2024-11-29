@@ -1,6 +1,6 @@
 module ExtendableSparse
 
-using DocStringExtensions: DocStringExtensions, SIGNATURES, TYPEDEF,TYPEDFIELDS
+using DocStringExtensions: DocStringExtensions, SIGNATURES, TYPEDEF, TYPEDFIELDS
 using ILUZero: ILUZero, ldiv!, nnz
 using LinearAlgebra: LinearAlgebra, Diagonal, Hermitian, Symmetric, Tridiagonal,
     cholesky, cholesky!, convert, lu!, mul!, norm, transpose
@@ -37,7 +37,7 @@ include("matrix/genericextendablesparsematrixcsc.jl")
 
 Aliased to [`ExtendableSparseMatrixCSC`](@ref)
 """
-const ExtendableSparseMatrix=ExtendableSparseMatrixCSC
+const ExtendableSparseMatrix = ExtendableSparseMatrixCSC
 
 
 """
@@ -48,8 +48,8 @@ Multithreaded extendable sparse matrix  (Experimental).
 Aliased to [`GenericMTExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
 scalar matrix parameter.
 """
-const MTExtendableSparseMatrixCSC{Tv,Ti}=GenericMTExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
-MTExtendableSparseMatrixCSC(m,n,args...)=MTExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
+const MTExtendableSparseMatrixCSC{Tv, Ti} = GenericMTExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv, Ti}, Tv, Ti}
+MTExtendableSparseMatrixCSC(m, n, args...) = MTExtendableSparseMatrixCSC{Float64, Int64}(m, n, args...)
 
 """
     STExtendableSparseMatrixCSC
@@ -59,12 +59,12 @@ Single threaded extendable sparse matrix (Experimental).
 Aliased to [`GenericExtendableSparseMatricCSC`](@ref) with [`SparseMatrixDILNKC`](@ref) 
 scalar matrix parameter.
 """
-const STExtendableSparseMatrixCSC{Tv,Ti}=GenericExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv,Ti},Tv,Ti}
-STExtendableSparseMatrixCSC(m,n,args...)=STExtendableSparseMatrixCSC{Float64,Int64}(m,n,args...)
+const STExtendableSparseMatrixCSC{Tv, Ti} = GenericExtendableSparseMatrixCSC{SparseMatrixDILNKC{Tv, Ti}, Tv, Ti}
+STExtendableSparseMatrixCSC(m, n, args...) = STExtendableSparseMatrixCSC{Float64, Int64}(m, n, args...)
 
 
 export ExtendableSparseMatrixCSC, MTExtendableSparseMatrixCSC, STExtendableSparseMatrixCSC, GenericMTExtendableSparseMatrixCSC
-export SparseMatrixLNK, ExtendableSparseMatrix,flush!, nnz, updateindex!, rawupdateindex!, colptrs, sparse, reset!, nnznew
+export SparseMatrixLNK, ExtendableSparseMatrix, flush!, nnz, updateindex!, rawupdateindex!, colptrs, sparse, reset!, nnznew
 export partitioning!
 
 export eliminate_dirichlet, eliminate_dirichlet!, mark_dirichlet
@@ -98,7 +98,7 @@ export JacobiPreconditioner,
     PointBlockILUZeroPreconditioner,
     ParallelJacobiPreconditioner,
     ParallelILU0Preconditioner,
-    BlockPreconditioner,allow_views
+    BlockPreconditioner, allow_views
 
 export AbstractFactorization, LUFactorization, CholeskyFactorization, SparspakLU
 export issolver
@@ -129,7 +129,7 @@ Create the  [`AMGPreconditioner`](@ref) wrapping the Ruge-Stüben AMG preconditi
      Deprecated in favor of [`RS_AMGPreconditioner`](@ref)
 
 """
-function AMGPreconditioner end 
+function AMGPreconditioner end
 export AMGPreconditioner
 
 @deprecate AMGPreconditioner() RS_AMGPreconditioner()
@@ -144,7 +144,7 @@ RS_AMGPreconditioner(matrix;kwargs...)
 Create the  [`RS_AMGPreconditioner`](@ref) wrapping the Ruge-Stüben AMG preconditioner from [AlgebraicMultigrid.jl](https://github.com/JuliaLinearAlgebra/AlgebraicMultigrid.jl)
 For `kwargs` see there.
 """
-function RS_AMGPreconditioner end 
+function RS_AMGPreconditioner end
 export RS_AMGPreconditioner
 
 
@@ -157,10 +157,8 @@ SA_AMGPreconditioner(matrix;kwargs...)
 Create the  [`SA_AMGPreconditioner`](@ref) wrapping the smoothed aggregation AMG preconditioner from [AlgebraicMultigrid.jl](https://github.com/JuliaLinearAlgebra/AlgebraicMultigrid.jl)
 For `kwargs` see there.
 """
-function SA_AMGPreconditioner end 
+function SA_AMGPreconditioner end
 export SA_AMGPreconditioner
-
-
 
 
 """
@@ -186,8 +184,6 @@ Create the  [`AMGCL_RLXPreconditioner`](@ref) wrapping RLX preconditioner from [
 """
 function AMGCL_RLXPreconditioner end
 export AMGCL_RLXPreconditioner
-
-
 
 
 """

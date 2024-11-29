@@ -15,41 +15,47 @@ function test_fdrand0(T, k, l, m; symmetric = true)
     jacobi_iteration_matrix = I - inv(Diagonal(A)) * A
     ext = extrema(real(eigvals(Float64.(ForwardDiff.value.(Matrix(jacobi_iteration_matrix))))))
     mininv = minimum(inv(Matrix(A)))
-    abs(ext[1]) < 1 && abs(ext[2]) < 1 && mininv > 0
+    return abs(ext[1]) < 1 && abs(ext[2]) < 1 && mininv > 0
 end
 
 ##############################################
 function test_fdrand_coo(T, k, l, m)
     Acsc = fdrand(T, k, l, m; rand = () -> 1, matrixtype = SparseMatrixCSC)
     Acoo = fdrand(T, k, l, m; rand = () -> 1, matrixtype = :COO)
-    Acsc ≈ Acoo
+    return Acsc ≈ Acoo
 end
 
 ##############################################
 function test_fdrand_update(T, k, l, m)
-    A1 = fdrand(T,
-                k,
-                l,
-                m;
-                rand = () -> 1,
-                matrixtype = ExtendableSparseMatrix,
-                update = (A, v, i, j) -> A[i, j] += v)
-    A2 = fdrand(T,
-                k,
-                l,
-                m;
-                rand = () -> 1,
-                matrixtype = ExtendableSparseMatrix,
-                update = (A, v, i, j) -> rawupdateindex!(A, +, v, i, j))
-    A3 = fdrand(T,
-                k,
-                l,
-                m;
-                rand = () -> 1,
-                matrixtype = ExtendableSparseMatrix,
-                update = (A, v, i, j) -> updateindex!(A, +, v, i, j))
+    A1 = fdrand(
+        T,
+        k,
+        l,
+        m;
+        rand = () -> 1,
+        matrixtype = ExtendableSparseMatrix,
+        update = (A, v, i, j) -> A[i, j] += v
+    )
+    A2 = fdrand(
+        T,
+        k,
+        l,
+        m;
+        rand = () -> 1,
+        matrixtype = ExtendableSparseMatrix,
+        update = (A, v, i, j) -> rawupdateindex!(A, +, v, i, j)
+    )
+    A3 = fdrand(
+        T,
+        k,
+        l,
+        m;
+        rand = () -> 1,
+        matrixtype = ExtendableSparseMatrix,
+        update = (A, v, i, j) -> updateindex!(A, +, v, i, j)
+    )
 
-    A1 ≈ A2 && A1 ≈ A3
+    return A1 ≈ A2 && A1 ≈ A3
 end
 
 for T in [Float64, Dual64, Float64x2]

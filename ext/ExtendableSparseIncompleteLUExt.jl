@@ -1,19 +1,19 @@
 module ExtendableSparseIncompleteLUExt
 using ExtendableSparse
-using IncompleteLU 
+using IncompleteLU
 using LinearAlgebra: I
 using SparseArrays: AbstractSparseMatrixCSC, SparseMatrixCSC, getcolptr, rowvals, nonzeros
 
 import ExtendableSparse: ILUTPreconBuilder
 
-(b::ILUTPreconBuilder)(A::AbstractSparseMatrixCSC,p)=(IncompleteLU.ilu(SparseMatrixCSC(A); τ = b.droptol),I)
+(b::ILUTPreconBuilder)(A::AbstractSparseMatrixCSC, p) = (IncompleteLU.ilu(SparseMatrixCSC(A); τ = b.droptol), I)
 
 
 import ExtendableSparse: @makefrommatrix, AbstractPreconditioner, update!
 
 
 # Deprecated from here
-warned=false
+warned = false
 mutable struct ILUTPreconditioner <: AbstractPreconditioner
     A::ExtendableSparseMatrix
     factorization::IncompleteLU.ILUFactorization
@@ -22,11 +22,11 @@ mutable struct ILUTPreconditioner <: AbstractPreconditioner
         global warned
         if !warned
             @warn "ILUTPreconditioner is deprecated. Use LinearSolve with `precs=ILUTPreconBuilder()` instead"
-            warned=true
+            warned = true
         end
         p = new()
         p.droptol = droptol
-        p
+        return p
     end
 end
 
@@ -38,7 +38,7 @@ end
 function update!(precon::ILUTPreconditioner)
     A = precon.A
     @inbounds flush!(A)
-    precon.factorization = IncompleteLU.ilu(A.cscmatrix; τ = precon.droptol)
+    return precon.factorization = IncompleteLU.ilu(A.cscmatrix; τ = precon.droptol)
 end
 
 end

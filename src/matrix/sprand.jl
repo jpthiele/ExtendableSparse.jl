@@ -6,13 +6,13 @@ using incremental assembly.
 """
 function sprand!(A::AbstractSparseMatrix{Tv, Ti}, xnnz::Int) where {Tv, Ti}
     m, n = size(A)
-    for i = 1:xnnz
+    for i in 1:xnnz
         i = rand((1:m))
         j = rand((1:n))
         a = 1.0 + rand(Tv)
         A[i, j] += a
     end
-    A
+    return A
 end
 
 """
@@ -29,9 +29,9 @@ function sprand_sdd!(A::AbstractSparseMatrix{Tv, Ti}; nnzrow = 4) where {Tv, Ti}
     @assert m == n
     nnzrow = min(n, nnzrow)
     bandwidth = convert(Int, ceil(sqrt(n)))
-    for i = 1:n
+    for i in 1:n
         aii = 0
-        for k = 1:nnzrow
+        for k in 1:nnzrow
             jmin = max(1, i - bandwidth)
             jmax = min(n, i + bandwidth)
             j = rand((jmin:jmax))
@@ -43,7 +43,7 @@ function sprand_sdd!(A::AbstractSparseMatrix{Tv, Ti}; nnzrow = 4) where {Tv, Ti}
         end
         A[i, i] = aii + rand(Tv) # make it strictly diagonally dominant
     end
-    A
+    return A
 end
 
 """
@@ -55,12 +55,14 @@ with finite  difference discretization data  on a unit  hypercube. See
 
 It is required that `size(A)==(N,N)` where `N=nx*ny*nz`
 """
-function fdrand!(A::T,
-                 nx,
-                 ny = 1,
-                 nz = 1;
-                 update = (A, v, i, j) -> A[i, j] += v,
-                 rand = () -> rand(eltype(A))) where {T <: AbstractMatrix}
+function fdrand!(
+        A::T,
+        nx,
+        ny = 1,
+        nz = 1;
+        update = (A, v, i, j) -> A[i, j] += v,
+        rand = () -> rand(eltype(A))
+    ) where {T <: AbstractMatrix}
     sz = size(A)
     N = nx * ny * nz
     if sz[1] != N || sz[2] != N
@@ -88,7 +90,7 @@ function fdrand!(A::T,
         update(A, -v, i, j)
         update(A, -v, j, i)
         update(A, v, i, i)
-        update(A, v, j, j)
+        return update(A, v, j, j)
     end
 
     hx = 1.0 / nx
@@ -97,9 +99,9 @@ function fdrand!(A::T,
 
     nxy = nx * ny
     l = 1
-    for k = 1:nz
-        for j = 1:ny
-            for i = 1:nx
+    for k in 1:nz
+        for j in 1:ny
+            for i in 1:nx
                 if i < nx
                     update_pair(A, rand() * hy * hz / hx, l, l + 1)
                 end
@@ -122,7 +124,7 @@ function fdrand!(A::T,
             end
         end
     end
-    _flush!(A)
+    return _flush!(A)
 end
 
 """
@@ -140,14 +142,14 @@ function fdrand_coo(T, nx, ny = 1, nz = 1; rand = () -> rand())
     function update(v, i, j)
         push!(I, i)
         push!(J, j)
-        push!(V, v)
+        return push!(V, v)
     end
 
     function update_pair(v, i, j)
         update(-v, i, j)
         update(-v, j, i)
         update(v, i, i)
-        update(v, j, j)
+        return update(v, j, j)
     end
 
     hx = 1.0 / nx
@@ -156,9 +158,9 @@ function fdrand_coo(T, nx, ny = 1, nz = 1; rand = () -> rand())
 
     nxy = nx * ny
     l = 1
-    for k = 1:nz
-        for j = 1:ny
-            for i = 1:nx
+    for k in 1:nz
+        for j in 1:ny
+            for i in 1:nx
                 if i < nx
                     update_pair(rand() * hy * hz / hx, l, l + 1)
                 end
@@ -181,7 +183,7 @@ function fdrand_coo(T, nx, ny = 1, nz = 1; rand = () -> rand())
             end
         end
     end
-    sparse(I, J, V)
+    return sparse(I, J, V)
 end
 """
 $(SIGNATURES)
@@ -223,14 +225,16 @@ are random unless e.g.  `rand=()->1` is passed as random number generator.
 Tested for Matrix, SparseMatrixCSC,  ExtendableSparseMatrix, Tridiagonal, SparseMatrixLNK and `:COO`
 
 """
-function fdrand(::Type{T},
-                nx,
-                ny = 1,
-                nz = 1;
-                matrixtype::Union{Type, Symbol} = SparseMatrixCSC,
-                update = (A, v, i, j) -> A[i, j] += v,
-                rand = () -> 0.1 + rand(),
-                symmetric = true) where {T}
+function fdrand(
+        ::Type{T},
+        nx,
+        ny = 1,
+        nz = 1;
+        matrixtype::Union{Type, Symbol} = SparseMatrixCSC,
+        update = (A, v, i, j) -> A[i, j] += v,
+        rand = () -> 0.1 + rand(),
+        symmetric = true
+    ) where {T}
     N = nx * ny * nz
     if matrixtype == :COO
         A = fdrand_coo(T, nx, ny, nz; rand = rand)
@@ -248,26 +252,28 @@ function fdrand(::Type{T},
         end
         A = fdrand!(A, nx, ny, nz; update = update, rand = rand)
     end
-    if symmetric
+    return if symmetric
         A
     else
-        Diagonal([rand() for i = 1:size(A, 1)]) * A
+        Diagonal([rand() for i in 1:size(A, 1)]) * A
     end
 end
 
 fdrand(nx, ny = 1, nz = 1; kwargs...) = fdrand(Float64, nx, ny, nz; kwargs...)
 
 ### for use with LinearSolve.jl
-function solverbenchmark(T,
-                         solver,
-                         nx,
-                         ny = 1,
-                         nz = 1;
-                         symmetric = false,
-                         matrixtype = ExtendableSparseMatrix,
-                         seconds = 0.5,
-                         repeat = 1,
-                         tol = sqrt(eps(Float64)))
+function solverbenchmark(
+        T,
+        solver,
+        nx,
+        ny = 1,
+        nz = 1;
+        symmetric = false,
+        matrixtype = ExtendableSparseMatrix,
+        seconds = 0.5,
+        repeat = 1,
+        tol = sqrt(eps(Float64))
+    )
     A = fdrand(T, nx, ny, nz; symmetric, matrixtype)
     n = size(A, 1)
     x = rand(n)
@@ -275,7 +281,7 @@ function solverbenchmark(T,
     u = solver(A, b)
     nrm = norm(u - x, 1) / n
     if nrm > tol
-        error("solution  inaccurate: $((nx,ny,nz)), |u-exact|=$nrm")
+        error("solution  inaccurate: $((nx, ny, nz)), |u-exact|=$nrm")
     end
     secs = 0.0
     nsol = 0
@@ -286,26 +292,30 @@ function solverbenchmark(T,
         tmin = min(tmin, t)
         nsol += 1
     end
-    tmin
+    return tmin
 end
 
-function solverbenchmark(T,
-                         solver;
-                         dim = 1,
-                         nsizes = 10,
-                         sizes = [10 * 2^i for i = 1:nsizes],
-                         symmetric = false,
-                         matrixtype = ExtendableSparseMatrix,
-                         seconds = 0.1,
-                         tol = sqrt(eps(Float64)))
+function solverbenchmark(
+        T,
+        solver;
+        dim = 1,
+        nsizes = 10,
+        sizes = [10 * 2^i for i in 1:nsizes],
+        symmetric = false,
+        matrixtype = ExtendableSparseMatrix,
+        seconds = 0.1,
+        tol = sqrt(eps(Float64))
+    )
     if dim == 1
         ns = sizes
     elseif dim == 2
         ns = [(Int(ceil(x^(1 / 2))), Int(ceil(x^(1 / 2)))) for x in sizes]
     elseif dim == 3
-        ns = [(Int(ceil(x^(1 / 3))), Int(ceil(x^(1 / 3))), Int(ceil(x^(1 / 3))))
-              for
-              x in sizes]
+        ns = [
+            (Int(ceil(x^(1 / 3))), Int(ceil(x^(1 / 3))), Int(ceil(x^(1 / 3))))
+                for
+                x in sizes
+        ]
     end
     times = zeros(0)
     sizes = zeros(Int, 0)
@@ -314,5 +324,5 @@ function solverbenchmark(T,
         push!(times, t)
         push!(sizes, prod(s))
     end
-    sizes, times
+    return sizes, times
 end

@@ -52,7 +52,6 @@ issolver(::AbstractLUFactorization) = true
 issolver(::AbstractPreconditioner) = false
 
 
-
 """"
     @makefrommatrix(fact)
 
@@ -65,10 +64,10 @@ For an AbstractFactorization `MyFact`, provide methods
 macro makefrommatrix(fact)
     return quote
         function $(esc(fact))(A::ExtendableSparseMatrix; kwargs...)
-            factorize!($(esc(fact))(;kwargs...), A)
+            return factorize!($(esc(fact))(; kwargs...), A)
         end
         function $(esc(fact))(A::SparseMatrixCSC; kwargs...)
-            $(esc(fact))(ExtendableSparseMatrix(A); kwargs...)
+            return $(esc(fact))(ExtendableSparseMatrix(A); kwargs...)
         end
     end
 end
@@ -104,9 +103,9 @@ This method is aware of pattern changes.
 function factorize!(p::AbstractFactorization, A::ExtendableSparseMatrix)
     p.A = A
     update!(p)
-    p
+    return p
 end
-factorize!(p::AbstractFactorization, A::SparseMatrixCSC)=factorize!(p,ExtendableSparseMatrix(A))
+factorize!(p::AbstractFactorization, A::SparseMatrixCSC) = factorize!(p, ExtendableSparseMatrix(A))
 
 
 """
@@ -120,7 +119,7 @@ This method is aware of pattern changes.
 If `nothing` is passed as first parameter, [`factorize!`](@ref) is called.
 """
 function LinearAlgebra.lu!(lufact::AbstractFactorization, A::ExtendableSparseMatrix)
-    factorize!(lufact, A)
+    return factorize!(lufact, A)
 end
 
 """
@@ -136,11 +135,11 @@ function lu  end
 
 if USE_GPL_LIBS
     function LinearAlgebra.lu(A::ExtendableSparseMatrix)
-        factorize!(LUFactorization(), A)
+        return factorize!(LUFactorization(), A)
     end
 else
     function LinearAlgebra.lu(A::ExtendableSparseMatrix)
-        factorize!(SparspakLU(), A)
+        return factorize!(SparspakLU(), A)
     end
 end # USE_GPL_LIBS
 
@@ -151,8 +150,8 @@ end # USE_GPL_LIBS
 
 Solve  LU factorization problem.
 """
-function Base.:\(lufact::AbstractLUFactorization,v)
-    ldiv!(similar(v), lufact, v)
+function Base.:\(lufact::AbstractLUFactorization, v)
+    return ldiv!(similar(v), lufact, v)
 end
 
 """
@@ -173,8 +172,6 @@ Solve factorization.
 """
 LinearAlgebra.ldiv!(u, fact::AbstractFactorization, v) = ldiv!(u, fact.factorization, v)
 LinearAlgebra.ldiv!(fact::AbstractFactorization, v) = ldiv!(fact.factorization, v)
-
-
 
 
 if USE_GPL_LIBS

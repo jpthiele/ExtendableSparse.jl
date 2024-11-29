@@ -8,7 +8,7 @@ function test_lu1(T, k, l, m; lufac = ExtendableSparse.LUFactorization())
     A = fdrand(k, l, m; rand = () -> 1, matrixtype = ExtendableSparseMatrix)
     b = rand(k * l * m)
     x1 = A \ b
-    for i = 1:(k * l * m)
+    for i in 1:(k * l * m)
         A[i, i] += 1.0
     end
     x2 = A \ b
@@ -18,7 +18,7 @@ function test_lu1(T, k, l, m; lufac = ExtendableSparse.LUFactorization())
     a1 = deepcopy(Aext.cscmatrix)
     x1ext = lufac \ T.(b)
 
-    for i = 1:(k * l * m)
+    for i in 1:(k * l * m)
         Aext[i, i] += 1.0
     end
     update!(lufac)
@@ -26,7 +26,7 @@ function test_lu1(T, k, l, m; lufac = ExtendableSparse.LUFactorization())
     x2ext = lufac \ T.(b)
 
     atol = 100 * sqrt(f64(max(eps(T), eps(Float64))))
-    isapprox(norm(x1 - f64.(x1ext)) / norm(x1), 0; atol) &&
+    return isapprox(norm(x1 - f64.(x1ext)) / norm(x1), 0; atol) &&
         isapprox(norm(x2 - f64.(x2ext)) / norm(x2), 0; atol)
 end
 
@@ -35,11 +35,11 @@ function test_lu2(T, k, l, m; lufac = ExtendableSparse.LUFactorization())
     b = rand(k * l * m)
     lu!(lufac, Aext)
     x1ext = lufac \ T.(b)
-    for i = 4:(k * l * m - 3)
+    for i in 4:(k * l * m - 3)
         Aext[i, i + 3] -= 1.0e-4
         Aext[i - 3, i] -= 1.0e-4
     end
     lufac = lu!(lufac, Aext)
     x2ext = lufac \ T.(b)
-    all(x1ext .< x2ext)
+    return all(x1ext .< x2ext)
 end

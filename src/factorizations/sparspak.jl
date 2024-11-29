@@ -1,4 +1,3 @@
-
 mutable struct SparspakLU <: AbstractLUFactorization
     A::Union{ExtendableSparseMatrix, Nothing}
     factorization::Union{Sparspak.SparseSolver.SparseSolver, Nothing}
@@ -6,7 +5,7 @@ mutable struct SparspakLU <: AbstractLUFactorization
 end
 
 function SparspakLU()
-    fact = SparspakLU(nothing, nothing, 0)
+    return fact = SparspakLU(nothing, nothing, 0)
 end
 
 """
@@ -21,7 +20,7 @@ function SparspakLU end
 
 function update!(lufact::SparspakLU)
     flush!(lufact.A)
-    if lufact.A.phash != lufact.phash
+    return if lufact.A.phash != lufact.phash
         lufact.factorization = sparspaklu(lufact.A.cscmatrix)
     else
         sparspaklu!(lufact.factorization, lufact.A.cscmatrix)
