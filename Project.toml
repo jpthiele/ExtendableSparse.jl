@@ -1,7 +1,7 @@
 name = "ExtendableSparse"
 uuid = "95c220a8-a1cf-11e9-0c77-dbfce5f500b3"
 authors = ["Juergen Fuhrmann <juergen.fuhrmann@wias-berlin.de>"]
-version = "1.6.0"
+version = "1.7.0"
 
 [deps]
 AMGCLWrap = "4f76b812-4ba5-496d-b042-d70715554288"
@@ -31,12 +31,12 @@ ExtendableSparseLinearSolveExt = "LinearSolve"
 
 [compat]
 AMGCLWrap = "2"
-AlgebraicMultigrid = "0.4,0.5,0.6"
+AlgebraicMultigrid = "0.4, 0.5, 0.6"
 DocStringExtensions = "0.8, 0.9"
 ILUZero = "0.2"
 IncompleteLU = "^0.2.1"
-LinearSolve = "2.36.0"
-Pardiso = "0.5.1"
+LinearSolve = "2.36.0, 3"
+Pardiso = "0.5.1, 1"
 Sparspak = "0.3.6"
 StaticArrays = "1.5.24"
 julia = "1.9"
