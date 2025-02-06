@@ -100,7 +100,7 @@ struct RugeStubenPreconBuilder{Tk}
 end
 
 function RugeStubenPreconBuilder(; blocksize = 1, kwargs...)
-    return SmoothedAggregationPreconBuilder(blocksize, kwargs)
+    return RugeStubenPreconBuilder(blocksize, kwargs)
 end
 
 (::RugeStubenPreconBuilder)(A, p) = error("import AlgebraicMultigrid in order to use RugeStubenAMGBuilder")

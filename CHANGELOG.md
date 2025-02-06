@@ -8,6 +8,9 @@
 - Move AMGBuilder, ILUZeroBuilder etc. to the corresponding packages (depending on the PRs)
 - remove "old" SparseMatrixLNK (need to benchmark before)
 
+## [1.7.0] - 2025-02-06
+- Bump Pardiso to 1.0 and LinearSolve to 3.0
+
 ## [1.6.0] - 2024-11-10
 - Support precs API of LinearSolve.jl
 
